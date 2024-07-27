@@ -3,3 +3,6 @@ run:
 
 build: 
 	docker build -t db-hose .
+
+fmt:
+	go fmt ./...

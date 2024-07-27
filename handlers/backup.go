@@ -19,19 +19,49 @@ const (
 )
 
 func Backup(c *gin.Context) {
-	host := c.PostForm("host")
-	port := c.PostForm("port")
-	user := c.PostForm("user")
-	dbname := c.PostForm("dbname")
+
+	email := c.PostForm("email")
 	key := c.PostForm("key")
+	secret := c.Query("secret")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := s3.GetEncryptedCredentials(user)
+	encryptedCreds, err := s3.GetCreds(email, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	password, err := utils.Decrypt(encryptedCreds, key)
+
+	encryptedUser := encryptedCreds.Values["user"]
+	encryptedPassword := encryptedCreds.Values["password"]
+	encryptedHost := encryptedCreds.Values["host"]
+	encryptedPort := encryptedCreds.Values["port"]
+	encryptedDBName := encryptedCreds.Values["dbname"]
+
+	user, err := utils.Decrypt(encryptedUser, secret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	password, err := utils.Decrypt(encryptedPassword, key)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	host, err := utils.Decrypt(encryptedHost, key)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	port, err := utils.Decrypt(encryptedPort, key)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	dbname, err := utils.Decrypt(encryptedDBName, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
