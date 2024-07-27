@@ -45,7 +45,7 @@ func (sm *SessionManager) CreateSession(email string) (string, error) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	token, err := GenerateJWT(email)
+	token, err := GenerateJWT(email, sessionDuration)
 	if err != nil {
 		return "", err
 	}

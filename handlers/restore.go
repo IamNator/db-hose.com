@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"bytes"
 	"dbhose/s3"
 	"dbhose/utils"
 	"fmt"
@@ -64,7 +65,7 @@ func Restore(c *gin.Context) {
 	}
 
 	// Download the file from S3
-	result, err := s3.DownloadFromS3(bucket, fileName)
+	result, err := s3.FetchBackup(fileName)
 	if err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"event": "restore",
@@ -73,8 +74,6 @@ func Restore(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to download backup", "details": err.Error()})
 		return
 	}
-
-	defer result.Body.Close()
 
 	// Create the command
 	cmdStr := fmt.Sprintf(`psql "host=%s port=%s user=%s dbname=%s password=%s sslmode=require"`, host, port, user, dbname, password)
@@ -99,8 +98,10 @@ func Restore(c *gin.Context) {
 		return
 	}
 
+	bodyReader := bytes.NewReader(result)
+
 	// Write the S3 object to the command input
-	if _, err := io.Copy(inPipe, result.Body); err != nil {
+	if _, err := io.Copy(inPipe, bodyReader); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

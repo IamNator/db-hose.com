@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Interaction</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="scripts.js" defer></script>
+</head>
+<body>
+    <div class="navbar">
+        <button onclick="showView('signup')">Signup</button>
+        <button onclick="showView('login')">Login</button>
+        <button onclick="showView('logout')">Logout</button>
+        <button onclick="showView('delete_account')">Delete Account</button>
+        <button onclick="showView('change_password')">Change Password</button>
+        <button onclick="showView('store_creds')">Store Credentials</button>
+        <button onclick="showView('edit_creds')">Edit Credentials</button>
+        <button onclick="showView('delete_creds')">Delete Credentials</button>
+        <button onclick="showView('view_creds')">View Credentials</button>
+        <button onclick="showView('backup')">Backup</button>
+        <button onclick="showView('restore')">Restore</button>
+    </div>
+
+    <div id="view-container">
+        <div id="signup" class="view">
+            <h2>Signup</h2>
+            <form id="signup-form">
+                <label for="signup-username">Username</label>
+                <input type="text" id="signup-username" name="username" required>
+                <label for="signup-password">Password</label>
+                <input type="password" id="signup-password" name="password" required>
+                <button type="submit">Signup</button>
+            </form>
+        </div>
+
+        <div id="login" class="view" style="display:none;">
+            <h2>Login</h2>
+            <form id="login-form">
+                <label for="login-username">Username</label>
+                <input type="text" id="login-username" name="username" required>
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" name="password" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
+
+        <div id="logout" class="view" style="display:none;">
+            <h2>Logout</h2>
+            <form id="logout-form">
+                <button type="submit">Logout</button>
+            </form>
+        </div>
+
+        <div id="delete_account" class="view" style="display:none;">
+            <h2>Delete Account</h2>
+            <form id="delete-account-form">
+                <button type="submit">Delete Account</button>
+            </form>
+        </div>
+
+        <div id="change_password" class="view" style="display:none;">
+            <h2>Change Password</h2>
+            <form id="change-password-form">
+                <label for="old-password">Old Password</label>
+                <input type="password" id="old-password" name="old_password" required>
+                <label for="new-password">New Password</label>
+                <input type="password" id="new-password" name="new_password" required>
+                <button type="submit">Change Password</button>
+            </form>
+        </div>
+
+        <div id="store_creds" class="view" style="display:none;">
+            <h2>Store Credentials</h2>
+            <form id="store-creds-form">
+                <label for="store-username">Username</label>
+                <input type="text" id="store-username" name="username" required>
+                <label for="store-key">Key</label>
+                <input type="text" id="store-key" name="key" required>
+                <label for="store-user">User</label>
+                <input type="text" id="store-user" name="user" required>
+                <label for="store-password">Password</label>
+                <input type="password" id="store-password" name="password" required>
+                <label for="store-host">Host</label>
+                <input type="text" id="store-host" name="host" required>
+                <label for="store-port">Port</label>
+                <input type="text" id="store-port" name="port" required>
+                <label for="store-dbname">DB Name</label>
+                <input type="text" id="store-dbname" name="dbname" required>
+                <button type="submit">Store Credentials</button>
+            </form>
+        </div>
+
+        <div id="edit_creds" class="view" style="display:none;">
+            <h2>Edit Credentials</h2>
+            <form id="edit-creds-form">
+                <label for="edit-username">Username</label>
+                <input type="text" id="edit-username" name="username" required>
+                <label for="edit-key">Key</label>
+                <input type="text" id="edit-key" name="key" required>
+                <label for="edit-user">User</label>
+                <input type="text" id="edit-user" name="user" required>
+                <label for="edit-password">Password</label>
+                <input type="password" id="edit-password" name="password" required>
+                <label for="edit-host">Host</label>
+                <input type="text" id="edit-host" name="host" required>
+                <label for="edit-port">Port</label>
+                <input type="text" id="edit-port" name="port" required>
+                <label for="edit-dbname">DB Name</label>
+                <input type="text" id="edit-dbname" name="dbname" required>
+                <button type="submit">Edit Credentials</button>
+            </form>
+        </div>
+
+        <div id="delete_creds" class="view" style="display:none;">
+            <h2>Delete Credentials</h2>
+            <form id="delete-creds-form">
+                <label for="delete-username">Username</label>
+                <input type="text" id="delete-username" name="username" required>
+                <button type="submit">Delete Credentials</button>
+            </form>
+        </div>
+
+        <div id="view_creds" class="view" style="display:none;">
+            <h2>View Credentials</h2>
+            <form id="view-creds-form">
+                <label for="view-username">Username</label>
+                <input type="text" id="view-username" name="username" required>
+                <button type="submit">View Credentials</button>
+            </form>
+        </div>
+
+        <div id="backup" class="view" style="display:none;">
+            <h2>Backup</h2>
+            <form id="backup-form">
+                <button type="submit">Backup</button>
+            </form>
+        </div>
+
+        <div id="restore" class="view" style="display:none;">
+            <h2>Restore</h2>
+            <form id="restore-form">
+                <button type="submit">Restore</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

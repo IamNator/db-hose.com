@@ -14,10 +14,6 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-const (
-	bucket = "migrations"
-)
-
 func Backup(c *gin.Context) {
 
 	email := c.PostForm("email")
@@ -110,7 +106,7 @@ func Backup(c *gin.Context) {
 	key = "backups/" + fileName
 	body := bytes.NewReader(buf.Bytes())
 
-	if err := s3.UploadToS3(bucket, key, body); err != nil {
+	if err := s3.StoreBackup(key, body); err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"event": "backup",
 			"error": err.Error(),

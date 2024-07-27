@@ -2,16 +2,38 @@ package s3
 
 import (
 	"bytes"
-	"dbhose/utils"
 	"encoding/json"
+	"io"
 	"time"
+
+	"dbhose/utils"
 )
+
+func StoreBackup(email string, reader *bytes.Reader) error {
+	// Store the backup data to S3
+	hashedEmail := utils.Hash(email)
+	timestamp := time.Now().UTC().Format("2006_01_02_15_04_05")
+	fileKey := "backups/" + hashedEmail + "/" + timestamp + ".sql"
+	return UploadToS3(bucket, fileKey, reader)
+}
+
+func FetchBackup(fileKey string) ([]byte, error) {
+	// Restore the backup data from S3
+	result, err := DownloadFromS3(bucket, fileKey)
+	if err != nil {
+		return nil, err
+	}
+
+	defer result.Body.Close()
+	return io.ReadAll(result.Body)
+}
 
 func LogBackup(dur time.Duration, email, fileKey string) error {
 
 	// Log the backup operation to S3
+	hashedEmail := utils.Hash(email)
 	currentDate := time.Now().UTC().Format("2006_01_02")
-	logKey := "logs/" + email + "/" + currentDate + ".log"
+	logKey := "logs/" + hashedEmail + "/" + currentDate + ".log"
 
 	rawData := map[string]any{
 		"timestamp": time.Now().Format("2006-01-02 15:04:05"),
@@ -25,8 +47,9 @@ func LogBackup(dur time.Duration, email, fileKey string) error {
 
 func LogRestore(dur time.Duration, email, fileKey string) error {
 	// Log the restore operation to S3
+	hashedEmail := utils.Hash(email)
 	currentDate := time.Now().UTC().Format("2006_01_02")
-	logKey := "logs/" + email + "/" + currentDate + ".log"
+	logKey := "logs/" + hashedEmail + "/" + currentDate + ".log"
 
 	rawData := map[string]any{
 		"timestamp": time.Now().Format("2006-01-02 15:04:05"),
