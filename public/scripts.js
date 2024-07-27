@@ -4,6 +4,15 @@ function showView(viewId) {
     document.getElementById(viewId).style.display = 'block';
 }
 
+
+function clearDisplay() {
+    const response = document.getElementById('response');
+    // Clear the response element
+    response.innerHTML = '';
+    // Hide the response element
+    response.style.display = 'none';
+}
+
 function displayData(data) {
     const response = document.getElementById('response');
     // Clear the response element
@@ -18,7 +27,11 @@ function displayData(data) {
 
     // Show the response element
     response.style.display = 'block';
+
+    // clear after 5 seconds
+    setTimeout(clearDisplay, 5000);
 }
+
 
 const BASE_URL = 'http://localhost:8080';
 
