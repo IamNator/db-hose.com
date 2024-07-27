@@ -4,8 +4,10 @@ function showView(viewId) {
     document.getElementById(viewId).style.display = 'block';
 }
 
+const BASE_URL = 'http://localhost:8080';
+
 async function postData(url = '', data = {}) {
-    const response = await fetch(url, {
+    const response = await fetch(BASE_URL + url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
@@ -17,7 +19,7 @@ async function postData(url = '', data = {}) {
 }
 
 async function putData(url = '', data = {}) {
-    const response = await fetch(url, {
+    const response = await fetch(BASE_URL + url, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -29,7 +31,7 @@ async function putData(url = '', data = {}) {
 }
 
 async function deleteData(url = '') {
-    const response = await fetch(url, {
+    const response = await fetch(BASE_URL + url, {
         method: 'DELETE',
         headers: {
             'Content-Type': 'application/json',
@@ -40,7 +42,7 @@ async function deleteData(url = '') {
 }
 
 async function getData(url = '') {
-    const response = await fetch(url, {
+    const response = await fetch(BASE_URL + url, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -54,7 +56,7 @@ async function getData(url = '') {
 document.getElementById('signup-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const data = {
-        username: event.target.username.value,
+        email: event.target.email.value,
         password: event.target.password.value
     };
     postData('/signup', data).then(data => {
@@ -65,7 +67,7 @@ document.getElementById('signup-form').addEventListener('submit', function(event
 document.getElementById('login-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const data = {
-        username: event.target.username.value,
+        email: event.target.email.value,
         password: event.target.password.value
     };
     postData('/login', data).then(data => {
@@ -106,7 +108,7 @@ document.getElementById('change-password-form').addEventListener('submit', funct
 document.getElementById('store-creds-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const data = {
-        username: event.target.username.value,
+        email: event.target.email.value,
         key: event.target.key.value,
         user: event.target.user.value,
         password: event.target.password.value,
@@ -122,7 +124,7 @@ document.getElementById('store-creds-form').addEventListener('submit', function(
 document.getElementById('edit-creds-form').addEventListener('submit', function(event) {
     event.preventDefault();
     const data = {
-        username: event.target.username.value,
+        email: event.target.email.value,
         key: event.target.key.value,
         user: event.target.user.value,
         password: event.target.password.value,
@@ -137,16 +139,16 @@ document.getElementById('edit-creds-form').addEventListener('submit', function(e
 
 document.getElementById('delete-creds-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    const username = event.target.username.value;
-    deleteData(`/creds/delete/${username}`).then(data => {
+    const email = event.target.email.value;
+    deleteData(`/creds/delete/${email}`).then(data => {
         alert(JSON.stringify(data));
     });
 });
 
 document.getElementById('view-creds-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    const username = event.target.username.value;
-    getData(`/creds/view/${username}`).then(data => {
+    const email = event.target.email.value;
+    getData(`/creds/view/${email}`).then(data => {
         alert(JSON.stringify(data));
     });
 });

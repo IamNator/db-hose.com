@@ -35,6 +35,14 @@ func SetupRoutes(r *gin.Engine) {
 		SessionMgr: sessionManager,
 	}
 
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
+	r.Use(utils.CORSMiddleware())
+
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{"message": "OK"})
+	})
+
 	r.POST("/signup", handler.Signup)
 	r.POST("/login", handler.Login)
 	r.POST("/logout", sessionManager.Middleware, handler.Logout)

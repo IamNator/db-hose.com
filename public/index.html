@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Interaction</title>
+    <title>db-hose.com</title>
     <link rel="stylesheet" href="styles.css">
     <script src="scripts.js" defer></script>
 </head>
@@ -26,8 +26,8 @@
         <div id="signup" class="view">
             <h2>Signup</h2>
             <form id="signup-form">
-                <label for="signup-username">Username</label>
-                <input type="text" id="signup-username" name="username" required>
+                <label for="signup-email">Email</label>
+                <input type="text" id="signup-email" name="email" required>
                 <label for="signup-password">Password</label>
                 <input type="password" id="signup-password" name="password" required>
                 <button type="submit">Signup</button>
@@ -37,8 +37,8 @@
         <div id="login" class="view" style="display:none;">
             <h2>Login</h2>
             <form id="login-form">
-                <label for="login-username">Username</label>
-                <input type="text" id="login-username" name="username" required>
+                <label for="login-email">Email</label>
+                <input type="text" id="login-email" name="email" required>
                 <label for="login-password">Password</label>
                 <input type="password" id="login-password" name="password" required>
                 <button type="submit">Login</button>
@@ -73,8 +73,8 @@
         <div id="store_creds" class="view" style="display:none;">
             <h2>Store Credentials</h2>
             <form id="store-creds-form">
-                <label for="store-username">Username</label>
-                <input type="text" id="store-username" name="username" required>
+                <label for="store-email">Email</label>
+                <input type="text" id="store-email" name="email" required>
                 <label for="store-key">Key</label>
                 <input type="text" id="store-key" name="key" required>
                 <label for="store-user">User</label>
@@ -87,6 +87,8 @@
                 <input type="text" id="store-port" name="port" required>
                 <label for="store-dbname">DB Name</label>
                 <input type="text" id="store-dbname" name="dbname" required>
+                <label for="schema">Schema</label>
+                <input type="text" id="schema" name="schema" placeholder="Schema">
                 <button type="submit">Store Credentials</button>
             </form>
         </div>
@@ -94,8 +96,8 @@
         <div id="edit_creds" class="view" style="display:none;">
             <h2>Edit Credentials</h2>
             <form id="edit-creds-form">
-                <label for="edit-username">Username</label>
-                <input type="text" id="edit-username" name="username" required>
+                <label for="edit-email">Email</label>
+                <input type="text" id="edit-email" name="email" required>
                 <label for="edit-key">Key</label>
                 <input type="text" id="edit-key" name="key" required>
                 <label for="edit-user">User</label>
@@ -115,8 +117,8 @@
         <div id="delete_creds" class="view" style="display:none;">
             <h2>Delete Credentials</h2>
             <form id="delete-creds-form">
-                <label for="delete-username">Username</label>
-                <input type="text" id="delete-username" name="username" required>
+                <label for="delete-email">Email</label>
+                <input type="text" id="delete-email" name="email" required>
                 <button type="submit">Delete Credentials</button>
             </form>
         </div>
@@ -124,8 +126,8 @@
         <div id="view_creds" class="view" style="display:none;">
             <h2>View Credentials</h2>
             <form id="view-creds-form">
-                <label for="view-username">Username</label>
-                <input type="text" id="view-username" name="username" required>
+                <label for="view-email">Email</label>
+                <input type="text" id="view-email" name="email" required>
                 <button type="submit">View Credentials</button>
             </form>
         </div>

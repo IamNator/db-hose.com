@@ -6,8 +6,10 @@ import (
 
 	"dbhose/models"
 	"dbhose/s3"
+	"dbhose/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -52,6 +54,9 @@ func (h *Handler) Signup(c *gin.Context) {
 func (h *Handler) Login(c *gin.Context) {
 	var loginData models.LoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
@@ -59,6 +64,9 @@ func (h *Handler) Login(c *gin.Context) {
 	// Fetch user from S3
 	user, err := s3.GetUser(loginData.Email)
 	if err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to fetch user")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
 		return
 	}
@@ -73,6 +81,9 @@ func (h *Handler) Login(c *gin.Context) {
 	// Generate JWT token
 	token, err := h.SessionMgr.CreateSession(loginData.Email)
 	if err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to create session")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -90,12 +101,18 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 	var user models.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to bind JSON")
 		return
 	}
 
 	// Fetch user from S3
 	storedUser, err := s3.GetUser(user.Email)
 	if err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to fetch user")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
 		return
 	}
@@ -109,11 +126,17 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 
 	// Delete user from S3
 	if err := s3.DeleteUser(user.Email); err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to delete user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	if err := s3.DeleteAllCreds(user.Email); err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error": err.Error(),
+		}).Error("Failed to delete user credentials")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
