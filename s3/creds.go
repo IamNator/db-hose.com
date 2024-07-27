@@ -27,7 +27,7 @@ func UpdateCreds(email string, creds models.Credentials) error {
 
 func GetCreds(email, credKey string) (models.Credentials, error) {
 	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("creds/%s/%s.json", hashedEmail, credKey)
+	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, credKey)
 	result, err := DownloadFromS3(bucket, key)
 	if err != nil {
 		return models.Credentials{}, err
@@ -43,7 +43,7 @@ func GetCreds(email, credKey string) (models.Credentials, error) {
 
 func FindAllCreds(email string) ([]models.Credentials, error) {
 	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("creds/%s/", hashedEmail)
+	key := fmt.Sprintf("credentials/%s/", hashedEmail)
 	svc := s3.New(sess)
 	result, err := svc.ListObjects(&s3.ListObjectsInput{
 		Bucket: aws.String(bucket),
@@ -72,7 +72,7 @@ func FindAllCreds(email string) ([]models.Credentials, error) {
 
 func DeleteCreds(email, credKey string) error {
 	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("creds/%s/%s.json", hashedEmail, credKey)
+	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, credKey)
 	svc := s3.New(sess)
 	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),
@@ -83,7 +83,7 @@ func DeleteCreds(email, credKey string) error {
 
 func DeleteAllCreds(email string) error {
 	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("creds/%s/", hashedEmail)
+	key := fmt.Sprintf("credentials/%s/", hashedEmail)
 	svc := s3.New(sess)
 	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
 		Bucket: aws.String(bucket),

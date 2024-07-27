@@ -78,6 +78,8 @@ func Backup(c *gin.Context) {
 		return
 	}
 
+	start := time.Now()
+
 	// Start the command
 	if err := cmd.Start(); err != nil {
 		utils.Log.WithFields(logrus.Fields{
@@ -101,6 +103,8 @@ func Backup(c *gin.Context) {
 		return
 	}
 
+	duration := time.Since(start)
+
 	// Upload the output to S3
 	fileName := fmt.Sprintf("%s.psql.gz", time.Now().Format("2006-01-02"))
 	key = "backups/" + fileName
@@ -116,7 +120,7 @@ func Backup(c *gin.Context) {
 	}
 
 	// Log the backup
-	s3.LogBackup(user, key)
+	s3.LogBackup(duration, user, key)
 
 	utils.Log.WithFields(logrus.Fields{
 		"event": "backup",

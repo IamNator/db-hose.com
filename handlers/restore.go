@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os/exec"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -86,6 +87,8 @@ func Restore(c *gin.Context) {
 		return
 	}
 
+	start := time.Now()
+
 	// Start the command
 	if err := cmd.Start(); err != nil {
 		utils.Log.WithFields(logrus.Fields{
@@ -105,12 +108,18 @@ func Restore(c *gin.Context) {
 
 	// Wait for the command to complete
 	if err := cmd.Wait(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		utils.Log.WithFields(logrus.Fields{
+			"event": "restore",
+			"error": err.Error(),
+		}).Error("Restore failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Restore failed", "details": err.Error()})
 		return
 	}
 
+	duration := time.Since(start)
+
 	// Log the restore
-	s3.LogRestore(email, fileName)
+	s3.LogRestore(duration, email, fileName)
 
 	utils.Log.WithFields(logrus.Fields{
 		"event": "restore",

@@ -1,12 +1,9 @@
 package s3
 
 import (
-	"bytes"
-	"dbhose/utils"
 	"io"
 	"log"
 	"os"
-	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -46,40 +43,4 @@ func DownloadFromS3(bucket, key string) (*s3.GetObjectOutput, error) {
 		Key:    aws.String(key),
 	})
 	return result, err
-}
-
-func LogBackup(email, fileKey string) error {
-	// Log the backup operation to S3
-	logKey := "logs/" + email + ".log"
-	logData := []byte(time.Now().Format("2006-01-02 15:04:05") + " Backup: " + fileKey + "\n")
-	return appendLog(logKey, logData)
-}
-
-func LogRestore(email, fileKey string) error {
-	// Log the restore operation to S3
-	logKey := "logs/" + email + ".log"
-	logData := []byte(time.Now().Format("2006-01-02 15:04:05") + " Restore: " + fileKey + "\n")
-	return appendLog(logKey, logData)
-}
-
-func appendLog(logKey string, logData []byte) error {
-	// Get the existing log data
-	result, err := DownloadFromS3(bucket, logKey)
-	if err != nil && !utils.IsNoSuchKeyError(err) {
-		return err
-	}
-
-	var buf bytes.Buffer
-	if result != nil {
-		if _, err := io.Copy(&buf, result.Body); err != nil {
-			return err
-		}
-		defer result.Body.Close()
-	}
-
-	// Append the new log data
-	buf.Write(logData)
-
-	// Upload the combined log data
-	return UploadToS3(bucket, logKey, bytes.NewReader(buf.Bytes()))
 }
