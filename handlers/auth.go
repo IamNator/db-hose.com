@@ -38,12 +38,20 @@ func (h *Handler) Signup(c *gin.Context) {
 
 	// Store user in S3
 	if err := s3.StoreUser(user); err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error":  err.Error(),
+			"method": "Signup",
+		}).Error("Failed to store user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	token, err := h.SessionMgr.CreateSession(user.Email)
 	if err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"error":  err.Error(),
+			"method": "Signup",
+		}).Error("Failed to create session")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -11,15 +11,17 @@ import (
 )
 
 var (
-	awsRegion = os.Getenv("AWS_REGION")
-	bucket    = os.Getenv("S3_BUCKET_NAME")
-	sess      *session.Session
+	bucket = os.Getenv("S3_BUCKET_NAME")
+	sess   *session.Session
 )
 
-func init() {
+func Init() {
+
+	bucket = os.Getenv("S3_BUCKET_NAME")
+
 	var err error
 	sess, err = session.NewSession(&aws.Config{
-		Region: aws.String(awsRegion),
+		Region: aws.String(os.Getenv("AWS_REGION")),
 	})
 	if err != nil {
 		log.Fatalf("failed to create session, %v", err)

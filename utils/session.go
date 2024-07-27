@@ -3,6 +3,7 @@ package utils
 import (
 	"errors"
 	"net/http"
+	"regexp"
 	"sync"
 	"time"
 
@@ -114,6 +115,11 @@ func (sm *SessionManager) Middleware(c *gin.Context) {
 		c.Abort()
 		return
 	}
+
+	//regrex to remove Bearer from token
+	pattern := `^Bearer `
+	token = regexp.MustCompile(pattern).ReplaceAllString(token, "") // remove Bearer
+	token = regexp.MustCompile(`\s`).ReplaceAllString(token, "")    // remove any whitespace
 
 	if err := sm.ValidateSession(token); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})

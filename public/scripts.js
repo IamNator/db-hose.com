@@ -4,6 +4,22 @@ function showView(viewId) {
     document.getElementById(viewId).style.display = 'block';
 }
 
+function displayData(data) {
+    const response = document.getElementById('response');
+    // Clear the response element
+    response.innerHTML = '';
+    // Format the JSON data
+    const formattedData = JSON.stringify(data, 1, 2);
+    // Create a new pre element to display the formatted JSON
+    const pre = document.createElement('pre');
+    pre.textContent = formattedData;
+    // Append the pre element to the response element
+    response.appendChild(pre);
+
+    // Show the response element
+    response.style.display = 'block';
+}
+
 const BASE_URL = 'http://localhost:8080';
 
 async function postData(url = '', data = {}) {
@@ -60,7 +76,7 @@ document.getElementById('signup-form').addEventListener('submit', function(event
         password: event.target.password.value
     };
     postData('/signup', data).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -74,7 +90,7 @@ document.getElementById('login-form').addEventListener('submit', function(event)
         if (data.token) {
             sessionStorage.setItem('token', data.token);
         }
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -82,7 +98,7 @@ document.getElementById('logout-form').addEventListener('submit', function(event
     event.preventDefault();
     postData('/logout', {}).then(data => {
         sessionStorage.removeItem('token');
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -90,7 +106,7 @@ document.getElementById('delete-account-form').addEventListener('submit', functi
     event.preventDefault();
     postData('/delete', {}).then(data => {
         sessionStorage.removeItem('token');
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -101,7 +117,7 @@ document.getElementById('change-password-form').addEventListener('submit', funct
         new_password: event.target.new_password.value
     };
     postData('/change-password', data).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -117,7 +133,7 @@ document.getElementById('store-creds-form').addEventListener('submit', function(
         dbname: event.target.dbname.value
     };
     postData('/creds/store', data).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -133,7 +149,7 @@ document.getElementById('edit-creds-form').addEventListener('submit', function(e
         dbname: event.target.dbname.value
     };
     putData('/creds/edit', data).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
@@ -141,28 +157,35 @@ document.getElementById('delete-creds-form').addEventListener('submit', function
     event.preventDefault();
     const email = event.target.email.value;
     deleteData(`/creds/delete/${email}`).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
+    });
+});
+
+document.getElementById('list-creds-form').addEventListener('submit', function(event) {
+    event.preventDefault();
+    getData(`/creds/list`).then(data => {
+        displayData(JSON.stringify(data));
     });
 });
 
 document.getElementById('view-creds-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    const email = event.target.email.value;
-    getData(`/creds/view/${email}`).then(data => {
-        alert(JSON.stringify(data));
+    const key = event.target.key.value;
+    getData(`/creds/view/${key}`).then(data => {
+        displayData(JSON.stringify(data));
     });
 });
 
 document.getElementById('backup-form').addEventListener('submit', function(event) {
     event.preventDefault();
     postData('/backup', {}).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });
 
 document.getElementById('restore-form').addEventListener('submit', function(event) {
     event.preventDefault();
     postData('/restore', {}).then(data => {
-        alert(JSON.stringify(data));
+        displayData(JSON.stringify(data));
     });
 });

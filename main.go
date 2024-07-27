@@ -3,6 +3,7 @@ package main
 import (
 	"dbhose/configs"
 	"dbhose/handlers"
+	"dbhose/s3"
 	"dbhose/utils"
 	"log"
 
@@ -14,6 +15,7 @@ func init() {
 	godotenv.Load()
 	configs.CheckEnvVars()
 	configs.CheckPrograms()
+	s3.Init()
 }
 
 func main() {
@@ -35,10 +37,9 @@ func SetupRoutes(r *gin.Engine) {
 		SessionMgr: sessionManager,
 	}
 
-	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
+	r.Use(gin.Logger())
 	r.Use(utils.CORSMiddleware())
-
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "OK"})
 	})
@@ -51,9 +52,10 @@ func SetupRoutes(r *gin.Engine) {
 
 	r.POST("/creds/store", sessionManager.Middleware, handlers.StoreCreds)
 	r.PUT("/creds/edit", sessionManager.Middleware, handlers.EditCreds)
-	r.DELETE("/creds/delete/:username", sessionManager.Middleware, handlers.DeleteCreds)
-	r.GET("/creds/view/:username", sessionManager.Middleware, handlers.ViewCreds)
+	r.DELETE("/creds/delete/:key", sessionManager.Middleware, handlers.DeleteCreds)
+	r.GET("/creds/view/:key", sessionManager.Middleware, handlers.ViewCreds)
+	r.GET("/creds/list", sessionManager.Middleware, handlers.ListCreds)
 
-	r.POST("/backup", sessionManager.Middleware, handlers.Backup)
-	r.POST("/restore", sessionManager.Middleware, handlers.Restore)
+	r.POST("/backup/:key", sessionManager.Middleware, handlers.Backup)
+	r.POST("/restore/:key", sessionManager.Middleware, handlers.Restore)
 }

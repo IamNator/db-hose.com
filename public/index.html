@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <script src="scripts.js" defer></script>
 </head>
+
 <body>
     <div class="navbar">
         <button onclick="showView('signup')">Signup</button>
@@ -17,6 +19,7 @@
         <button onclick="showView('store_creds')">Store Credentials</button>
         <button onclick="showView('edit_creds')">Edit Credentials</button>
         <button onclick="showView('delete_creds')">Delete Credentials</button>
+        <button onclick="showView('list_creds')">List Credentials</button>
         <button onclick="showView('view_creds')">View Credentials</button>
         <button onclick="showView('backup')">Backup</button>
         <button onclick="showView('restore')">Restore</button>
@@ -123,6 +126,13 @@
             </form>
         </div>
 
+        <div id="list_creds" class="view" style="display:none;">
+            <h2>View Credentials</h2>
+            <form id="list-creds-form">
+                <button type="submit">List Credentials</button>
+            </form>
+        </div>
+
         <div id="view_creds" class="view" style="display:none;">
             <h2>View Credentials</h2>
             <form id="view-creds-form">
@@ -145,6 +155,11 @@
                 <button type="submit">Restore</button>
             </form>
         </div>
+
+
+        <div id="response"></div>
+            
     </div>
 </body>
+
 </html>

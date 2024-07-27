@@ -41,7 +41,7 @@ func GetCreds(email, credKey string) (models.Credentials, error) {
 	return creds, nil
 }
 
-func FindAllCreds(email string) ([]models.Credentials, error) {
+func ListCreds(email string) ([]models.Credentials, error) {
 	hashedEmail := utils.Hash(email)
 	key := fmt.Sprintf("credentials/%s/", hashedEmail)
 	svc := s3.New(sess)

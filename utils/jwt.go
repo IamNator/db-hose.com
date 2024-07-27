@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	"github.com/golang-jwt/jwt"
 )
 
 type Claims struct {
@@ -22,13 +22,13 @@ func GenerateJWT(email string, ttl time.Duration) (string, error) {
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(os.Getenv("JWT_SECRET_KEY"))
+	return token.SignedString([]byte(os.Getenv("JWT_SECRET_KEY")))
 }
 
 func ValidateJWT(tokenStr string) (*Claims, error) {
 	claims := &Claims{}
 	token, err := jwt.ParseWithClaims(tokenStr, claims, func(token *jwt.Token) (interface{}, error) {
-		return os.Getenv("JWT_SECRET_KEY"), nil
+		return []byte(os.Getenv("JWT_SECRET_KEY")), nil
 	})
 
 	if err != nil {

@@ -13,7 +13,7 @@ import (
 // StoreCreds stores encrypted credentials in S3
 func StoreCreds(c *gin.Context) {
 
-	email := c.Query("email")
+	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
 	var creds models.Credentials
@@ -58,7 +58,7 @@ func StoreCreds(c *gin.Context) {
 
 // EditCreds edits stored credentials in S3
 func EditCreds(c *gin.Context) {
-	email := c.Query("email")
+	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
 	var creds models.Credentials
@@ -120,7 +120,7 @@ func EditCreds(c *gin.Context) {
 // DeleteCreds deletes stored credentials from S3
 func DeleteCreds(c *gin.Context) {
 
-	email := c.Query("email")
+	email := c.Value("email").(string)
 	key := c.Param("key")
 
 	if err := s3.DeleteCreds(email, key); err != nil {
@@ -142,7 +142,7 @@ func DeleteCreds(c *gin.Context) {
 // ViewCreds views stored credentials from S3
 func ViewCreds(c *gin.Context) {
 
-	email := c.Query("email")
+	email := c.Value("email").(string)
 	secret := c.Query("secret")
 	key := c.Param("key")
 
@@ -176,6 +176,28 @@ func ViewCreds(c *gin.Context) {
 		"event": "viewCreds",
 		"creds": creds,
 	}).Info("Credentials retrieved successfully")
+
+	c.JSON(http.StatusOK, gin.H{"credentials": creds})
+}
+
+// ListCreds lists stored credentials from S3
+func ListCreds(c *gin.Context) {
+
+	email := c.Value("email").(string)
+	creds, err := s3.ListCreds(email)
+	if err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"event": "listCreds",
+			"error": err.Error(),
+		}).Error("Failed to list credentials")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list credentials"})
+		return
+	}
+
+	utils.Log.WithFields(logrus.Fields{
+		"event": "listCreds",
+		"creds": creds,
+	}).Info("Credentials listed successfully")
 
 	c.JSON(http.StatusOK, gin.H{"credentials": creds})
 }
