@@ -132,7 +132,7 @@
         }
         .ellipsis {
             cursor: pointer;
-            color: #0066cc;
+            color: #78b5f8;
             font-weight: bold;
             margin-right: 10px;
         }
@@ -152,7 +152,7 @@
             transition: background-color 0.3s;
         }
         .action-btn:hover {
-            background-color: #78b5f8;
+            background-color: #0098db;
         }
         .card-container {
             display: flex;
@@ -223,7 +223,7 @@
     </div>
     <a href="index.html">Home</a>
     <a href="credentials.html">Credentials</a>
-    <a href="~/auth/login.html">Logout</a>
+    <a href="contact.html">Logout</a>
 </div>
 
 <!--------- Index.html content ---->
@@ -371,7 +371,7 @@
 <div id="actionModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 300px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
-        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Credential Actions</h2>
+        <h2 style="color: #0098db; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Credential Actions</h2>
         <p style="margin-bottom: 15px;">Selected Filekey: <span id="selectedFilekey" style="font-weight: bold;"></span></p>
         <div style="display: flex; flex-direction: column;">
             <button class="action-btn" onclick="viewCredential()">View Credential</button>
@@ -385,13 +385,13 @@
 <div id="storeModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
-        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Store Credentials</h2>
+        <h2 style="color: #0098db; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Store Credentials</h2>
         <form style="display: flex; flex-direction: column;">
             <label for="dbName" style="margin-bottom: 5px; font-weight: bold; color: #333;">Database URL:</label>
             <input type="text" id="dbName" name="dbName" required style="padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
             <label for="dbName" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
             <input type="text" id="dbName" name="dbName" required style="padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
-            <input type="submit" value="Store Credentials" style="background-color: #0066cc; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+            <input type="submit" value="Store Credentials" style="background-color: #0098db; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
         </form>
     </div>
 </div>
@@ -399,14 +399,14 @@
 <div id="editModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
-        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Edit Credentials</h2>
+        <h2 style="color: #0098db; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Edit Credentials</h2>
         <form style="display: flex; flex-direction: column;">
             <label for="databaseUrl" style="margin-bottom: 5px; font-weight: bold; color: #333;">New Database Url</label>
             <input type="text" id="databaseUrl" name="databaseUrl" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
             <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
             <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
 
-            <input type="submit" value="Update Credentials" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+            <input type="submit" value="Update Credentials" style="background-color: #0098db; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
         </form>
     </div>
 </div>
@@ -430,12 +430,12 @@
 <div id="viewModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
-        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">View Credentials</h2>
+        <h2 style="color: #0098db; margin-top: 0; margin-bottom: 20px; font-size: 24px;">View Credentials</h2>
         <form id="viewCredentialsForm" style="display: flex; flex-direction: column;">
             <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
             <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
 
-            <input type="submit" onclick="displayCredential()" value="View Credentials" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+            <input type="submit" onclick="displayCredential()" value="View Credentials" style="background-color: #0098db; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
         </form>
 
         <div id="credentialInfo" style="display:none; margin-top: 20px; background-color: #e6f2ff; padding: 15px; border-radius: 4px;">
@@ -476,12 +476,12 @@
 <div id="restoreModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
-        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Restore Database</h2>
+        <h2 style="color: #0098db; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Restore Database</h2>
         <form id="restoreForm" style="display: flex; flex-direction: column;">
             <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
             <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
 
-            <input type="submit" onclick="displayCredential()" value="Restore Database" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+            <input type="submit" onclick="displayCredential()" value="Restore Database" style="background-color: #0098db; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
         </form>
     </div>
 </div>
@@ -489,12 +489,12 @@
 <div id="backupModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
     <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
         <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
-        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Backup Database</h2>
+        <h2 style="color: #0098db; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Backup Database</h2>
         <form id="backupModal" style="display: flex; flex-direction: column;">
             <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
             <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
 
-            <input type="submit" onclick="displayCredential()" value="Backup Database" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+            <input type="submit" onclick="displayCredential()" value="Backup Database" style="background-color: #0098db; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
         </form>
     </div>
 </div>
@@ -718,15 +718,6 @@
         // Implement actual restore logic here
     }
 
-    function logoutEventLog() {
-        // Simulated logout
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('tokenExpiration');
-        document.body.classList.remove('authenticated');
-        document.body.classList.remove('not-authenticated');
-        alert('Logged out');
-        window.
-    }
 </script>
 </body>
 </html>
