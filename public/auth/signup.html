@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Form</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css"/>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans', sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+        }
+        .wrapper {
+            background: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        .wrapper .title {
+            color: #1a1a1a;
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .wrapper form .row {
+            margin-bottom: 15px;
+        }
+        .wrapper form .row input {
+            height: 45px;
+            width: 100%;
+            outline: none;
+            padding: 0 15px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            font-size: 16px;
+        }
+        .wrapper form .row input:focus {
+            border-color: #0098db;
+            box-shadow: 0 0 0 2px rgba(0,152,219,0.2);
+        }
+        .wrapper form .button input {
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            padding: 0 15px;
+            background: #0098db;
+            border: none;
+            cursor: pointer;
+            height: 45px;
+            border-radius: 4px;
+            width: 100%;
+        }
+        .wrapper form .button input:hover {
+            background: #0077b6;
+        }
+        .wrapper form .pass {
+            margin: -5px 0 20px 0;
+        }
+        .wrapper form .pass a,
+        .wrapper form .signup-link a {
+            color: #0098db;
+            text-decoration: none;
+        }
+        .wrapper form .pass a:hover,
+        .wrapper form .signup-link a:hover {
+            text-decoration: underline;
+        }
+        .wrapper form .signup-link {
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="wrapper">
+        <div class="title">Create an Account</div>
+        <form action="#">
+            <div class="row">
+                <input type="text" placeholder="Email or Phone" required>
+            </div>
+            <div class="row">
+                <input type="password" placeholder="Password" required>
+            </div>
+            <div class="pass"><a href="#">Forgot password?</a></div>
+            <div class="row button">
+                <input type="submit" value="Login">
+            </div>
+            <div class="signup-link">Already a member? <a href="login.html">Login</a></div>
+        </form>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function setAuthentication(token, expirationInSeconds) {
+        localStorage.setItem('authToken', token);
+        const expirationTime = Date.now() + (expirationInSeconds * 1000);
+        localStorage.setItem('tokenExpiration', expirationTime.toString());
+    }
+</script>
+</body>
+</html>
