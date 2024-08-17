@@ -1,0 +1,732 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DB Credentials Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Noto Sans', Arial, sans-serif;
+        }
+        .sidenav {
+            height: 100%;
+            width: 200px;
+            position: fixed;
+            z-index: 1;
+            top: 0;
+            left: 0;
+            background-color: white;
+            overflow-x: hidden;
+            padding-top: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 255, 0.1);
+        }
+        .logo {
+            text-align: center;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .logo h1 {
+            color: #0066cc;
+            font-size: 24px;
+            margin: 0;
+            font-weight: 700;
+            text-shadow: 1px 1px 2px rgba(0, 0, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+        .logo:hover {
+            background-color: #e6f2ff;
+        }
+        .logo:hover h1 {
+            color: #004c99;
+            transform: scale(1.05);
+        }
+        .sidenav a {
+            padding: 6px 8px 6px 16px;
+            text-decoration: none;
+            font-size: 18px;
+            color: #0066cc;
+            display: block;
+            transition: all 0.3s ease;
+        }
+        .sidenav a:hover {
+            background-color: #e6f2ff;
+            padding-left: 20px;
+        }
+        .main-content {
+            margin-left: 200px;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .service-item {
+            background-color: #f0f8ff;
+            border: 1px solid #b0d4ff;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        .service-item h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        .service-item p {
+            margin-bottom: 0;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 5px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .service-item {
+            cursor: pointer;
+        }
+        .ellipsis {
+            cursor: pointer;
+            color: #0066cc;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .ellipsis:hover {
+            text-decoration: underline;
+        }
+        .action-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            width: 100%;
+            text-align: left;
+            transition: background-color 0.3s;
+        }
+        .action-btn:hover {
+            background-color: #78b5f8;
+        }
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        .card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 1px 1px 1px 1px rgba(0,0,0,0.1);
+            padding: 20px;
+            width: 300px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 0 0 5px 0;
+        }
+        .card-subtitle {
+            color: #6c757d;
+            font-size: 14px;
+            margin: 0 0 15px 0;
+        }
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px;
+        }
+        .card-timestamp {
+            color: #6c757d;
+            font-size: 14px;
+        }
+        .btn {
+            background-color: #0098db;
+            border: none;
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 8px 16px;
+            text-decoration: none;
+        }
+        .event-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .event-table th, .event-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .event-table thead {
+            background-color: #f2f2f2;
+        }
+        .event-table th {
+            border-bottom: 2px solid #ddd;
+        }
+        .event-table tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+<div class="sidenav">
+    <div class="logo">
+        <h1>DB Hose</h1>
+    </div>
+    <a href="index.html">Home</a>
+    <a href="credentials.html">Credentials</a>
+    <a href="~/auth/login.html">Logout</a>
+</div>
+
+<!--------- Index.html content ---->
+<div class="main-content" id="index-content">
+    <h2>Event Log</h2>
+    <div class="card-container">
+        <div class="card">
+            <h2 class="card-title">Backup Database</h2>
+            <p class="card-subtitle">Backup your database</p>
+            <div class="card-footer">
+                <span class="card-timestamp">1hr ago</span>
+                <button onclick="backupEventLog()" class="btn">Backup</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2 class="card-title">Restore Database</h2>
+            <p class="card-subtitle">Restore a backed up database</p>
+            <div class="card-footer">
+                <span class="card-timestamp">2hrs ago</span>
+                <button onclick="restoreEventLog()" class="btn">Restore</button>
+            </div>
+        </div>
+    </div>
+    <table class="event-table">
+        <thead>
+        <tr>
+            <th>Timestamp</th>
+            <th>Duration</th>
+            <th>Event</th>
+            <th>Filekey</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td>2024-08-17 10:30:15</td>
+            <td>00:05:23</td>
+            <td>Credentials Stored</td>
+            <td>DB001</td>
+        </tr>
+        <tr>
+            <td>2024-08-17 11:45:30</td>
+            <td>00:02:10</td>
+            <td>Credentials Edited</td>
+            <td>DB002</td>
+        </tr>
+        <tr>
+            <td>2024-08-17 13:15:45</td>
+            <td>00:01:05</td>
+            <td>Credentials Deleted</td>
+            <td>DB003</td>
+        </tr>
+        <tr>
+            <td>2024-08-17 14:30:00</td>
+            <td>00:00:30</td>
+            <td>Credentials Viewed</td>
+            <td>DB004</td>
+        </tr>
+        <tr>
+            <td>2024-08-17 16:00:20</td>
+            <td>00:03:45</td>
+            <td>Credentials Listed</td>
+            <td>DB005</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Credential.html content -->
+<div class="main-content" id="credentials-content" style="display: none;">
+    <h2>Database Credentials Services</h2>
+
+    <div id="credentials">
+        <div class="service-item">
+            <h3>Store Credentials</h3>
+            <p>Securely store new database credentials in the system.</p>
+        </div>
+        <h2>Credentials</h2>
+        <table>
+            <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Duration</th>
+                <th>Event</th>
+                <th>Filekey</th>
+                <th>Actions</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <td>2024-08-17 10:30:15</td>
+                <td>00:05:23</td>
+                <td>Credentials Stored</td>
+                <td>DB001</td>
+                <td><span class="ellipsis" onclick="openActionModal('DB001')">...</span></td>
+            </tr>
+            <tr>
+                <td>2024-08-17 11:45:30</td>
+                <td>00:02:10</td>
+                <td>Credentials Edited</td>
+                <td>DB002</td>
+                <td><span class="ellipsis" onclick="openActionModal('DB002')">...</span></td>
+            </tr>
+            <tr>
+                <td>2024-08-17 13:15:45</td>
+                <td>00:01:05</td>
+                <td>Credentials Deleted</td>
+                <td>DB003</td>
+                <td><span class="ellipsis" onclick="openActionModal('DB003')">...</span></td>
+            </tr>
+            <tr>
+                <td>2024-08-17 14:30:00</td>
+                <td>00:00:30</td>
+                <td>Credentials Viewed</td>
+                <td>DB004</td>
+                <td><span class="ellipsis" onclick="openActionModal('DB004')">...</span></td>
+            </tr>
+            <tr>
+                <td>2024-08-17 16:00:20</td>
+                <td>00:03:45</td>
+                <td>Credentials Listed</td>
+                <td>DB005</td>
+                <td><span class="ellipsis" onclick="openActionModal('DB005')">...</span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Contact.html content -->
+<div class="main-content" id="contact-content" style="display: none;">
+    <h2>Contact Us</h2>
+    <form>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required><br><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required><br><br>
+        <label for="message">Message:</label>
+        <textarea id="message" name="message" required></textarea><br><br>
+        <input type="submit" value="Submit">
+    </form>
+</div>
+
+<!-- Modals -->
+<div id="actionModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 300px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
+        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Credential Actions</h2>
+        <p style="margin-bottom: 15px;">Selected Filekey: <span id="selectedFilekey" style="font-weight: bold;"></span></p>
+        <div style="display: flex; flex-direction: column;">
+            <button class="action-btn" onclick="viewCredential()">View Credential</button>
+            <button class="action-btn" onclick="editCredential()">Edit Credential</button>
+            <button class="action-btn" onclick="deleteCredential()">Delete Credential</button>
+        </div>
+    </div>
+</div>
+
+
+<div id="storeModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 500px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
+        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Store Credentials</h2>
+        <form style="display: flex; flex-direction: column;">
+            <label for="dbName" style="margin-bottom: 5px; font-weight: bold; color: #333;">Database URL:</label>
+            <input type="text" id="dbName" name="dbName" required style="padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+            <label for="dbName" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
+            <input type="text" id="dbName" name="dbName" required style="padding: 10px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+            <input type="submit" value="Store Credentials" style="background-color: #0066cc; color: white; padding: 12px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+        </form>
+    </div>
+</div>
+
+<div id="editModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
+        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Edit Credentials</h2>
+        <form style="display: flex; flex-direction: column;">
+            <label for="databaseUrl" style="margin-bottom: 5px; font-weight: bold; color: #333;">New Database Url</label>
+            <input type="text" id="databaseUrl" name="databaseUrl" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+            <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
+            <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+
+            <input type="submit" value="Update Credentials" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+        </form>
+    </div>
+</div>
+
+<div id="deleteModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Delete Credentials</h2>
+        <form>
+            <label for="deleteDb">Select Database to Delete:</label>
+            <select id="deleteDb" name="deleteDb" required>
+                <option value="">--Select--</option>
+                <option value="db1">Database 1</option>
+                <option value="db2">Database 2</option>
+            </select><br><br>
+            <input type="submit" value="Delete Credentials">
+        </form>
+    </div>
+</div>
+
+<div id="viewModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
+        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">View Credentials</h2>
+        <form id="viewCredentialsForm" style="display: flex; flex-direction: column;">
+            <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
+            <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+
+            <input type="submit" onclick="displayCredential()" value="View Credentials" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+        </form>
+
+        <div id="credentialInfo" style="display:none; margin-top: 20px; background-color: #e6f2ff; padding: 15px; border-radius: 4px;">
+            <p style="margin: 5px 0; display: flex; align-items: center;">
+                <strong style="margin-right: 10px;">Database Name:</strong>
+                <span id="viewDbName" style="margin-right: 10px;"></span>
+                <button onclick="copyToClipboard('viewDbName')" style="background: none; border: none; cursor: pointer; justify-content: end;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </p>
+            <p style="margin: 5px 0; display: flex; align-items: center;">
+                <strong style="margin-right: 10px;">Username:</strong>
+                <span id="viewUsername" style="margin-right: 10px;"></span>
+                <button onclick="copyToClipboard('viewUsername')" style="background: none; border: none; cursor: pointer; justify-content: end;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </p>
+            <p style="margin: 5px 0; display: flex; align-items: center;">
+                <strong style="margin-right: 10px;">Password:</strong>
+                <span id="viewPassword" style="margin-right: 10px;"></span>
+                <button onclick="copyToClipboard('viewPassword')" style="background: none; border: none; cursor: pointer; justify-content: end;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
+                </button>
+            </p>
+        </div>
+    </div>
+</div>
+
+<div id="restoreModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
+        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Restore Database</h2>
+        <form id="restoreForm" style="display: flex; flex-direction: column;">
+            <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
+            <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+
+            <input type="submit" onclick="displayCredential()" value="Restore Database" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+        </form>
+    </div>
+</div>
+
+<div id="backupModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+    <div class="modal-content" style="background-color: #f8f9fa; margin: 10% auto; padding: 30px; border: 1px solid #ddd; width: 90%; max-width: 400px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+        <span class="close" style="color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; transition: 0.3s;">&times;</span>
+        <h2 style="color: #0066cc; margin-top: 0; margin-bottom: 20px; font-size: 24px;">Backup Database</h2>
+        <form id="backupModal" style="display: flex; flex-direction: column;">
+            <label for="encryptionKey" style="margin-bottom: 5px; font-weight: bold; color: #333;">Encryption Key:</label>
+            <input type="password" id="encryptionKey" name="encryptionKey" required style="padding: 8px; margin-bottom: 15px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+
+            <input type="submit" onclick="displayCredential()" value="Backup Database" style="background-color: #0066cc; color: white; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; transition: background-color 0.3s;">
+        </form>
+    </div>
+</div>
+
+<div id="listModal" class="modal">
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>List Credentials</h2>
+        <ul id="credentialsList">
+            <li>Database 1 - User1</li>
+            <li>Database 2 - User2</li>
+            <li>Database 3 - User3</li>
+        </ul>
+    </div>
+</div>
+
+<script>
+    // Simple routing
+    function showPage(pageId) {
+        document.getElementById('index-content').style.display = 'none';
+        document.getElementById('credentials-content').style.display = 'none';
+        document.getElementById('contact-content').style.display = 'none';
+        document.getElementById(pageId).style.display = 'block';
+    }
+
+    // Check URL and show appropriate content
+    if (window.location.href.includes('credentials.html')) {
+        showPage('credentials-content');
+    } else if (window.location.href.includes('contact.html'))  {
+        showPage('contact-content');
+    } else {
+        showPage('index-content');
+    }
+
+    // Add click event listeners to navigation links
+    document.querySelectorAll('.sidenav a').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (link.href.includes('credentials.html')) {
+                showPage('credentials-content');
+            } else if (link.href.includes('contact.html')) {
+                showPage('contact-content');
+            }else {
+                showPage('index-content');
+            }
+            history.pushState(null, '', link.href);
+        });
+    });
+
+    const modals = {
+        'store': document.getElementById('storeModal'),
+        'edit': document.getElementById('editModal'),
+        'delete': document.getElementById('deleteModal'),
+        'view': document.getElementById('viewModal'),
+        'list': document.getElementById('listModal')
+    };
+
+    const serviceItems = document.querySelectorAll('.service-item');
+    serviceItems.forEach(item => {
+        item.addEventListener('click', () => {
+            const service = item.querySelector('h3').textContent.split(' ')[0].toLowerCase();
+            modals[service].style.display = 'block';
+        });
+    });
+
+    const closeButtons = document.querySelectorAll('.close');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            button.closest('.modal').style.display = 'none';
+        });
+    });
+
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    }
+
+    function showCredentials() {
+        document.getElementById('credentialInfo').style.display = 'block';
+        document.getElementById('viewDbName').textContent = document.getElementById('viewDb').value;
+        document.getElementById('viewUsername').textContent = 'example_user';
+    }
+
+    function openActionModal(filekey) {
+        document.getElementById('actionModal').style.display = 'block';
+        document.getElementById('selectedFilekey').textContent = filekey;
+    }
+
+    function viewCredential() {
+        document.getElementById('viewModal').style.display = 'block';
+    }
+
+    function editCredential() {
+        document.getElementById('editModal').style.display = 'block';
+        // Here you would typically open the edit modal or navigate to an edit page
+    }
+
+    function displayCredential() {
+        document.getElementById('credentialInfo').style.display = 'block';
+        // Here you would typically open the view modal or navigate to a view page
+    }
+    function deleteCredential() {
+        const filekey = document.getElementById('selectedFilekey').textContent;
+        if (confirm(`Are you sure you want to delete the credential for ${filekey}?`)) {
+            alert(`Deleted credential for ${filekey}`);
+            // Here you would typically send a delete request to your backend
+        }
+    }
+
+    // Add this to your existing window.onclick function
+    window.onclick = function(event) {
+        if (event.target.classList.contains('modal')) {
+            event.target.style.display = 'none';
+        }
+    }
+
+    // Add this to your existing closeButtons event listeners
+    document.querySelectorAll('.close').forEach(button => {
+        button.addEventListener('click', () => {
+            button.closest('.modal').style.display = 'none';
+        });
+    });
+
+    document.getElementById('viewCredentialsForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const selectedDb = document.getElementById('viewDb').value;
+        const encryptionKey = document.getElementById('encryptionKey').value;
+
+        if (selectedDb && encryptionKey) {
+            // Simulated API call or decryption process
+            setTimeout(() => {
+                if (encryptionKey === 'secret') { // Replace with actual validation
+                    document.getElementById('viewDbName').textContent = selectedDb;
+                    document.getElementById('viewUsername').textContent = 'example_user';
+                    document.getElementById('viewPassword').textContent = 'decrypted_password';
+                    document.getElementById('credentialInfo').style.display = 'block';
+                } else {
+                    alert('Invalid encryption key');
+                }
+            }, 1000);
+        } else {
+            alert('Please select a database and enter the encryption key');
+        }
+    });
+
+    document.querySelector('#editModal form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const selectedDb = document.getElementById('selectDb').value;
+        const databaseUrl = document.getElementById('databaseUrl').value;
+        const encryptionKey = document.getElementById('encryptionKey').value;
+
+        if (selectedDb && databaseUrl && encryptionKey) {
+            // Simulated API call or update process
+            setTimeout(() => {
+                alert(`Credentials updated for ${selectedDb}`);
+                // Here you would typically send the update to your backend
+                this.reset(); // Reset the form
+                document.getElementById('editModal').style.display = 'none'; // Close the modal
+            }, 1000);
+        } else {
+            alert('Please fill in all fields');
+        }
+    });
+
+    function copyToClipboard(elementId) {
+        const text = document.getElementById(elementId).textContent;
+        navigator.clipboard.writeText(text).then(() => {
+            // Visual feedback (you can replace this with a more subtle indication)
+            alert('Copied to clipboard: ' + text);
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+    }
+
+    // Function to check if the user is authenticated and the token is not expired
+    function checkAuthentication() {
+        const token = localStorage.getItem('authToken');
+        const tokenExpiration = localStorage.getItem('tokenExpiration');
+
+        if (token && tokenExpiration) {
+            // Convert expiration time to a number and compare with current time
+            const currentTime = Date.now();
+            const expirationTime = parseInt(tokenExpiration, 10);
+
+            if (currentTime < expirationTime) {
+                console.log('User is authenticated and token is valid');
+                // Perform actions for authenticated user
+                document.body.classList.add('authenticated');
+                return true;
+            } else {
+                console.log('Token has expired');
+                // Clear the expired token and its expiration time
+                localStorage.removeItem('authToken');
+                localStorage.removeItem('tokenExpiration');
+            }
+        }
+
+        console.log('User is not authenticated or token is invalid');
+        // Perform actions for non-authenticated user
+        document.body.classList.add('not-authenticated');
+        return false;
+    }
+
+    // Run the authentication check when the page loads
+    document.addEventListener('DOMContentLoaded', checkAuthentication);
+
+    // Example function to set authentication (for testing purposes)
+    function setAuthentication(token, expirationInSeconds) {
+        localStorage.setItem('authToken', token);
+        const expirationTime = Date.now() + (expirationInSeconds * 1000);
+        localStorage.setItem('tokenExpiration', expirationTime.toString());
+    }
+    function backupEventLog() {
+        document.getElementById('backupModal').style.display = 'block';
+        // Implement actual backup logic here
+    }
+
+    function restoreEventLog() {
+        document.getElementById('restoreModal').style.display = 'block';
+        // Implement actual restore logic here
+    }
+
+    function logoutEventLog() {
+        // Simulated logout
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('tokenExpiration');
+        document.body.classList.remove('authenticated');
+        document.body.classList.remove('not-authenticated');
+        alert('Logged out');
+        window.
+    }
+</script>
+</body>
+</html>
