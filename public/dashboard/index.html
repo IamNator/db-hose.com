@@ -223,7 +223,7 @@
     </div>
     <a href="index.html">Home</a>
     <a href="credentials.html">Credentials</a>
-    <a href="~/auth/login.html">Logout</a>
+    <a href="../auth/login.html">Logout</a>
 </div>
 
 <!--------- Index.html content ---->
@@ -353,19 +353,6 @@
     </div>
 </div>
 
-<!-- Contact.html content -->
-<div class="main-content" id="contact-content" style="display: none;">
-    <h2>Contact Us</h2>
-    <form>
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required><br><br>
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required><br><br>
-        <label for="message">Message:</label>
-        <textarea id="message" name="message" required></textarea><br><br>
-        <input type="submit" value="Submit">
-    </form>
-</div>
 
 <!-- Modals -->
 <div id="actionModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
@@ -516,15 +503,12 @@
     function showPage(pageId) {
         document.getElementById('index-content').style.display = 'none';
         document.getElementById('credentials-content').style.display = 'none';
-        document.getElementById('contact-content').style.display = 'none';
         document.getElementById(pageId).style.display = 'block';
     }
 
     // Check URL and show appropriate content
     if (window.location.href.includes('credentials.html')) {
         showPage('credentials-content');
-    } else if (window.location.href.includes('contact.html'))  {
-        showPage('contact-content');
     } else {
         showPage('index-content');
     }
@@ -535,11 +519,11 @@
             e.preventDefault();
             if (link.href.includes('credentials.html')) {
                 showPage('credentials-content');
-            } else if (link.href.includes('contact.html')) {
-                showPage('contact-content');
-            }else {
+            } else if (link.href.includes('login.html')) {
+                logoutEventLog();
+            } else {
                 showPage('index-content');
-            }
+            } 
             history.pushState(null, '', link.href);
         });
     });
@@ -724,8 +708,7 @@
         localStorage.removeItem('tokenExpiration');
         document.body.classList.remove('authenticated');
         document.body.classList.remove('not-authenticated');
-        alert('Logged out');
-        window.
+        window.location.href = '../auth/login.html';
     }
 </script>
 </body>

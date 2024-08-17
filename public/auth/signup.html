@@ -91,7 +91,7 @@
 <div class="container">
     <div class="wrapper">
         <div class="title">Create an Account</div>
-        <form action="#">
+        <form action="#" id="signupForm">
             <div class="row">
                 <input type="text" placeholder="Email or Phone" required>
             </div>
@@ -113,6 +113,11 @@
         const expirationTime = Date.now() + (expirationInSeconds * 1000);
         localStorage.setItem('tokenExpiration', expirationTime.toString());
     }
+
+    document.getElementById('signupForm').addEventListener('submit', function(event) {
+        event.preventDefault(); // Prevent the default form submission
+        window.location.href = '../dashboard/index.html';
+    })
 </script>
 </body>
 </html>
