@@ -89,3 +89,39 @@ func appendLog(logKey string, logData map[string]any) error {
 	// Upload the combined log data
 	return UploadToS3(bucket, logKey, bytes.NewReader(byteData))
 }
+
+func FetchLogs(email string) (map[string][]map[string]any, error) {
+
+	hashedEmail := utils.Hash(email)
+	logKey := "logs/" + hashedEmail
+
+	// list all the logs files
+	files, err := ListFiles(bucket, logKey)
+	if err != nil {
+		return nil, err
+	}
+
+	var allLogs map[string][]map[string]any
+
+	for _, file := range files {
+
+		// Get the existing log data
+		result, err := DownloadFromS3(bucket, file)
+		if err != nil && !utils.IsNoSuchKeyError(err) {
+			return nil, err
+		}
+
+		if result != nil {
+			var logs []map[string]any
+			if err := json.NewDecoder(result.Body).Decode(&logs); err != nil {
+				return nil, err
+			}
+
+			result.Body.Close()
+
+			allLogs[file] = logs
+		}
+	}
+
+	return allLogs, nil
+}

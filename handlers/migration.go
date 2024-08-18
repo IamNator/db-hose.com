@@ -243,3 +243,20 @@ func Restore(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{"message": "Restore completed"})
 }
+
+func Logs(c *gin.Context) {
+	// Logs
+	email := c.Value("email").(string)
+
+	logs, err := s3.FetchLogs(email)
+	if err != nil {
+		utils.Log.WithFields(logrus.Fields{
+			"event": "logs",
+			"error": err.Error(),
+		}).Error("Failed to fetch logs")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch logs", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Logs fetched successfully", "data": logs})
+}

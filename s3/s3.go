@@ -46,3 +46,22 @@ func DownloadFromS3(bucket, key string) (*s3.GetObjectOutput, error) {
 	})
 	return result, err
 }
+
+
+func ListFiles(bucket, key string) ([]string, error){
+	svc := s3.New(sess)
+	result, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{
+		Bucket: aws.String(bucket),
+		Prefix: aws.String(key),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var files []string
+	for _, item := range result.Contents {
+		files = append(files, *item.Key)
+	}
+	
+	return files, nil
+}

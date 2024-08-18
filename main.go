@@ -58,4 +58,5 @@ func SetupRoutes(r *gin.Engine) {
 
 	r.POST("/backup/:key", sessionManager.Middleware, handlers.Backup)
 	r.POST("/restore/:key", sessionManager.Middleware, handlers.Restore)
+	r.GET("/logs", sessionManager.Middleware, handlers.Logs)
 }
