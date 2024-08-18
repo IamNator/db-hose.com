@@ -4,7 +4,7 @@
 
 DB Hose is an open-source database credential management tool designed for enterprise developers. It provides secure storage, easy integration, and comprehensive logging for database credentials across various environments.
 
-[![GitHub stars](https://img.shields.io/github/stars/dbhose/dbhose.svg)](https://github.com/dbhose/dbhose/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/dbhose/dbhose.svg)](https://github.com/IamNator/db-hose.com/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Docker Pulls](https://img.shields.io/docker/pulls/dbhose/dbhose.svg)](https://hub.docker.com/r/dbhose/dbhose)
 
@@ -45,42 +45,6 @@ docker run -d -p 8080:8080 dbhose/dbhose:latest
 
 Visit `http://localhost:8080` to access the DB Hose dashboard.
 
-## Configuration
-
-DB Hose can be configured using environment variables or a configuration file. See our [configuration guide](https://docs.dbhose.com/configuration) for more details.
-
-## Usage
-
-Here's a basic example of how to use DB Hose to store and retrieve a database credential:
-
-```go
-package main
-
-import (
-    "github.com/dbhose/dbhose/client"
-)
-
-func main() {
-    dbhose := client.New("http://localhost:8080")
-
-    // Store a credential
-    err := dbhose.StoreCredential("mydb", "username", "password")
-    if err != nil {
-        panic(err)
-    }
-
-    // Retrieve a credential
-    username, password, err := dbhose.GetCredential("mydb")
-    if err != nil {
-        panic(err)
-    }
-
-    // Use the credentials to connect to your database
-    // ...
-}
-```
-
-For more detailed usage examples, please refer to our [documentation](https://docs.dbhose.com).
 
 ## Deployment Options
 
@@ -90,7 +54,7 @@ To deploy DB Hose on your own infrastructure, follow our [self-hosted deployment
 
 ### Managed Service
 
-For information about our managed service offering, visit [https://dbhose.com/managed](https://dbhose.com/managed).
+For information about our managed service offering, visit [https://db-hose-com.onrender.com/](https://db-hose-com.onrender.com/).
 
 ## Contributing
 
