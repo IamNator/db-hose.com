@@ -2,7 +2,7 @@
 
 ![DB Hose Logo](https://dbhose.com/logo.png)
 
-DB Hose is an open-source database credential management tool designed for enterprise developers. It provides secure storage, easy integration, and comprehensive logging for database credentials across various environments.
+DB Hose is an open-source database migration management tool designed for enterprise developers. It provides secure storage, easy integration, and comprehensive logging for database migration across various environments.
 
 [![GitHub stars](https://img.shields.io/github/stars/dbhose/dbhose.svg)](https://github.com/IamNator/db-hose.com/stargazers)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -81,4 +81,4 @@ DB Hose is open-source software licensed under the [MIT license](LICENSE.md).
 
 ---
 
-DB Hose - Secure Database Credential Management for Enterprise Developers
+DB Hose - Secure Database Migration Management for Enterprise Developers
