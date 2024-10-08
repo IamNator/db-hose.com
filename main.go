@@ -1,10 +1,10 @@
 package main
 
 import (
-	"dbhose/configs"
-	"dbhose/handlers"
-	"dbhose/s3"
-	"dbhose/utils"
+	"dbhose/config"
+	utils "dbhose/pkg"
+	handlers "dbhose/server"
+	s3 "dbhose/storage"
 	"log"
 
 	"github.com/gin-gonic/gin"
@@ -13,13 +13,12 @@ import (
 
 func init() {
 	godotenv.Load()
-	configs.CheckEnvVars()
-	configs.CheckPrograms()
+	config.CheckEnvVars()
+	config.CheckPrograms()
 	s3.Init()
 }
 
 func main() {
-
 	r := gin.Default()
 	SetupRoutes(r)
 

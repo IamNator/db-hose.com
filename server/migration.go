@@ -1,9 +1,9 @@
-package handlers
+package server
 
 import (
 	"bytes"
-	"dbhose/s3"
-	"dbhose/utils"
+	utils "dbhose/pkg"
+	"dbhose/storage"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,7 +22,7 @@ func Backup(c *gin.Context) {
 	secret := c.Query("secret")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := s3.GetCreds(email, key)
+	encryptedCreds, err := storage.GetCreds(email, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -107,7 +107,7 @@ func Backup(c *gin.Context) {
 	key = "backups/" + fileName
 	body := bytes.NewReader(buf.Bytes())
 
-	if err := s3.StoreBackup(key, body); err != nil {
+	if err := storage.StoreBackup(key, body); err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"event": "backup",
 			"error": err.Error(),
@@ -117,7 +117,7 @@ func Backup(c *gin.Context) {
 	}
 
 	// Log the backup
-	s3.LogBackup(duration, user, key)
+	storage.LogBackup(duration, user, key)
 
 	utils.Log.WithFields(logrus.Fields{
 		"event": "backup",
@@ -136,7 +136,7 @@ func Restore(c *gin.Context) {
 	fileName := c.Query("file")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := s3.GetCreds(email, key)
+	encryptedCreds, err := storage.GetCreds(email, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -179,7 +179,7 @@ func Restore(c *gin.Context) {
 	}
 
 	// Download the file from S3
-	result, err := s3.FetchBackup(fileName)
+	result, err := storage.FetchBackup(fileName)
 	if err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"event": "restore",
@@ -234,7 +234,7 @@ func Restore(c *gin.Context) {
 	duration := time.Since(start)
 
 	// Log the restore
-	s3.LogRestore(duration, email, fileName)
+	storage.LogRestore(duration, email, fileName)
 
 	utils.Log.WithFields(logrus.Fields{
 		"event": "restore",
@@ -248,7 +248,7 @@ func Logs(c *gin.Context) {
 	// Logs
 	email := c.Value("email").(string)
 
-	logs, err := s3.FetchLogs(email)
+	logs, err := storage.FetchLogs(email)
 	if err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"event": "logs",

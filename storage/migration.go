@@ -1,4 +1,4 @@
-package s3
+package storage
 
 import (
 	"bytes"
@@ -6,7 +6,7 @@ import (
 	"io"
 	"time"
 
-	"dbhose/utils"
+	utils "dbhose/pkg"
 )
 
 func StoreBackup(email string, reader *bytes.Reader) error {
@@ -101,7 +101,7 @@ func FetchLogs(email string) (map[string][]map[string]any, error) {
 		return nil, err
 	}
 
-	var allLogs map[string][]map[string]any
+	var allLogs = make(map[string][]map[string]any)
 
 	for _, file := range files {
 

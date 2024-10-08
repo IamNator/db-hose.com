@@ -1,6 +1,6 @@
-package handlers
+package server
 
-import "dbhose/utils"
+import utils "dbhose/pkg"
 
 type Handler struct {
 	SessionMgr *utils.SessionManager

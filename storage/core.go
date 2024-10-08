@@ -1,4 +1,4 @@
-package s3
+package storage
 
 import (
 	"io"
@@ -47,8 +47,7 @@ func DownloadFromS3(bucket, key string) (*s3.GetObjectOutput, error) {
 	return result, err
 }
 
-
-func ListFiles(bucket, key string) ([]string, error){
+func ListFiles(bucket, key string) ([]string, error) {
 	svc := s3.New(sess)
 	result, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{
 		Bucket: aws.String(bucket),
@@ -62,6 +61,6 @@ func ListFiles(bucket, key string) ([]string, error){
 	for _, item := range result.Contents {
 		files = append(files, *item.Key)
 	}
-	
+
 	return files, nil
 }

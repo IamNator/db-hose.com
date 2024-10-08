@@ -1,12 +1,12 @@
-package handlers
+package server
 
 import (
 	"net/http"
 	"time"
 
-	"dbhose/models"
-	"dbhose/s3"
-	"dbhose/utils"
+	"dbhose/domain"
+	utils "dbhose/pkg"
+	s3 "dbhose/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -14,7 +14,7 @@ import (
 )
 
 func (h *Handler) Signup(c *gin.Context) {
-	var user models.User
+	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -60,7 +60,7 @@ func (h *Handler) Signup(c *gin.Context) {
 }
 
 func (h *Handler) Login(c *gin.Context) {
-	var loginData models.LoginData
+	var loginData domain.LoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -106,7 +106,7 @@ func (h *Handler) Logout(c *gin.Context) {
 }
 
 func (h *Handler) DeleteAccount(c *gin.Context) {
-	var user models.User
+	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		utils.Log.WithFields(logrus.Fields{
@@ -155,7 +155,7 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 }
 
 func (h *Handler) ChangePassword(c *gin.Context) {
-	var changePasswordData models.ChangePasswordData
+	var changePasswordData domain.ChangePasswordData
 	if err := c.ShouldBindJSON(&changePasswordData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

@@ -1,9 +1,9 @@
-package s3
+package storage
 
 import (
 	"bytes"
-	"dbhose/models"
-	"dbhose/utils"
+	"dbhose/domain"
+	utils "dbhose/pkg"
 	"encoding/json"
 	"fmt"
 
@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func StoreCreds(email string, creds models.Credentials) error {
+func StoreCreds(email string, creds domain.Credentials) error {
 	hashedEmail := utils.Hash(email)
 	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, creds.Key)
 	credsBytes, err := json.Marshal(creds)
@@ -21,27 +21,27 @@ func StoreCreds(email string, creds models.Credentials) error {
 	return UploadToS3(bucket, key, bytes.NewReader(credsBytes))
 }
 
-func UpdateCreds(email string, creds models.Credentials) error {
+func UpdateCreds(email string, creds domain.Credentials) error {
 	return StoreCreds(email, creds)
 }
 
-func GetCreds(email, credKey string) (models.Credentials, error) {
+func GetCreds(email, credKey string) (domain.Credentials, error) {
 	hashedEmail := utils.Hash(email)
 	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, credKey)
 	result, err := DownloadFromS3(bucket, key)
 	if err != nil {
-		return models.Credentials{}, err
+		return domain.Credentials{}, err
 	}
 	defer result.Body.Close()
 
-	var creds models.Credentials
+	var creds domain.Credentials
 	if err := json.NewDecoder(result.Body).Decode(&creds); err != nil {
-		return models.Credentials{}, err
+		return domain.Credentials{}, err
 	}
 	return creds, nil
 }
 
-func ListCreds(email string) ([]models.Credentials, error) {
+func ListCreds(email string) ([]domain.Credentials, error) {
 	hashedEmail := utils.Hash(email)
 	key := fmt.Sprintf("credentials/%s/", hashedEmail)
 	svc := s3.New(sess)
@@ -53,7 +53,7 @@ func ListCreds(email string) ([]models.Credentials, error) {
 		return nil, err
 	}
 
-	var creds []models.Credentials
+	var creds []domain.Credentials
 	for _, obj := range result.Contents {
 		result, err := DownloadFromS3(bucket, *obj.Key)
 		if err != nil {
@@ -61,7 +61,7 @@ func ListCreds(email string) ([]models.Credentials, error) {
 		}
 		defer result.Body.Close()
 
-		var cred models.Credentials
+		var cred domain.Credentials
 		if err := json.NewDecoder(result.Body).Decode(&cred); err != nil {
 			return nil, err
 		}

@@ -1,9 +1,9 @@
-package handlers
+package server
 
 import (
-	"dbhose/models"
-	"dbhose/s3"
-	"dbhose/utils"
+	models "dbhose/domain"
+	utils "dbhose/pkg"
+	s3 "dbhose/storage"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

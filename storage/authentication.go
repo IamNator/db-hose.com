@@ -1,8 +1,8 @@
-package s3
+package storage
 
 import (
 	"bytes"
-	"dbhose/models"
+	"dbhose/domain"
 	"encoding/json"
 	"fmt"
 	"time"
@@ -11,7 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func StoreUser(user models.User) error {
+func StoreUser(user domain.User) error {
 	user.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
@@ -24,17 +24,17 @@ func StoreUser(user models.User) error {
 	return UploadToS3(bucket, key, bytes.NewReader(userBytes))
 }
 
-func GetUser(email string) (models.User, error) {
+func GetUser(email string) (domain.User, error) {
 	key := fmt.Sprintf("users/%s.json", email)
 	result, err := DownloadFromS3(bucket, key)
 	if err != nil {
-		return models.User{}, err
+		return domain.User{}, err
 	}
 	defer result.Body.Close()
 
-	var user models.User
+	var user domain.User
 	if err := json.NewDecoder(result.Body).Decode(&user); err != nil {
-		return models.User{}, err
+		return domain.User{}, err
 	}
 	return user, nil
 }
@@ -49,6 +49,6 @@ func DeleteUser(email string) error {
 	return err
 }
 
-func UpdateUser(user models.User) error {
+func UpdateUser(user domain.User) error {
 	return StoreUser(user)
 }
