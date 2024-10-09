@@ -2,93 +2,86 @@ package storage
 
 import (
 	"bytes"
+	"dbhose/domain"
 	"encoding/json"
 	"fmt"
 	"io"
 	"time"
-
-	utils "dbhose/pkg"
 )
 
-func (sm *StorageManager) StoreBackup(email string, reader *bytes.Reader) error {
-	hashedEmail := utils.Hash(email)
-	timestamp := time.Now().UTC().Format("2006_01_02_15_04_05")
-	fileKey := fmt.Sprintf("backups/%s/%s.sql", hashedEmail, timestamp)
-	return sm.UploadToS3(fileKey, reader)
+func (sm *StorageManager) StoreBackup(email string, scriptReader *bytes.Reader) error {
+	migration := domain.Migration{
+		Email:     email,
+		TimeStamp: time.Now().UTC(),
+		Size:      int64(scriptReader.Len()),
+		Meta:      make(map[string]string),
+	}
+
+	scriptFile := fmt.Sprintf("backups/%s", migration.File())
+
+	if err := sm.UploadToS3(scriptFile, scriptReader); err != nil {
+		return err
+	}
+
+	return sm.updateMigrationHistory(migration)
 }
 
-func (sm *StorageManager) FetchBackup(fileKey string) ([]byte, error) {
-	result, err := sm.DownloadFromS3(fileKey)
+func (sm *StorageManager) updateMigrationHistory(migration domain.Migration) error {
+	key := fmt.Sprintf("migrations/%s", migration.Email)
+
+	//download existing migrations
+	result, err := sm.DownloadFromS3(key)
+	if err != nil {
+		return err
+	}
+
+	defer result.Body.Close()
+
+	var migrations []domain.Migration
+	if err := json.NewDecoder(result.Body).Decode(&migrations); err != nil {
+		return err
+	}
+
+	//append new migration
+	migrations = append(migrations, migration)
+
+	//upload updated migrations
+	byteData, err := json.Marshal(migrations)
+	if err != nil {
+		return err
+	}
+
+	return sm.UploadToS3(key, bytes.NewReader(byteData))
+}
+
+func (sm *StorageManager) FetchBackup(email string, tsmp time.Time) ([]byte, error) {
+	timestamp := tsmp.UTC().Format("2006_01_02_15_04_05")
+	scriptFile := fmt.Sprintf("backups/%s/%s.sql", email, timestamp)
+
+	result, err := sm.DownloadFromS3(scriptFile)
 	if err != nil {
 		return nil, err
 	}
 	defer result.Body.Close()
+
 	return io.ReadAll(result.Body)
 }
 
-func (sm *StorageManager) LogBackup(dur time.Duration, email, fileKey string) error {
-	return sm.logOperation("Backup", dur, email, fileKey)
-}
+func (sm *StorageManager) ListBackups(email string) ([]domain.Migration, error) {
+	key := fmt.Sprintf("migrations/%s", email)
 
-func (sm *StorageManager) LogRestore(dur time.Duration, email, fileKey string) error {
-	return sm.logOperation("Restore", dur, email, fileKey)
-}
-
-func (sm *StorageManager) logOperation(operation string, dur time.Duration, email, fileKey string) error {
-	hashedEmail := utils.Hash(email)
-	currentDate := time.Now().UTC().Format("2006_01_02")
-	logKey := fmt.Sprintf("logs/%s/%s.log", hashedEmail, currentDate)
-
-	logData := map[string]interface{}{
-		"timestamp": time.Now().Format("2006-01-02 15:04:05"),
-		"duration":  dur.String(),
-		"email":     email,
-		"event":     operation,
-		"file":      fileKey,
-	}
-
-	existingLogs, err := sm.FetchLogs(email)
-	if err != nil && !utils.IsNoSuchKeyError(err) {
-		return err
-	}
-
-	logs := existingLogs[logKey]
-	logs = append(logs, logData)
-
-	byteData, err := json.Marshal(logs)
-	if err != nil {
-		return err
-	}
-
-	return sm.UploadToS3(logKey, bytes.NewReader(byteData))
-}
-
-func (sm *StorageManager) FetchLogs(email string) (map[string][]map[string]interface{}, error) {
-	hashedEmail := utils.Hash(email)
-	prefix := fmt.Sprintf("logs/%s", hashedEmail)
-
-	files, err := sm.ListFiles(prefix)
+	//download existing migrations
+	result, err := sm.DownloadFromS3(key)
 	if err != nil {
 		return nil, err
 	}
 
-	allLogs := make(map[string][]map[string]interface{})
+	defer result.Body.Close()
 
-	for _, file := range files {
-		result, err := sm.DownloadFromS3(file)
-		if err != nil && !utils.IsNoSuchKeyError(err) {
-			return nil, err
-		}
-
-		if result != nil {
-			var logs []map[string]interface{}
-			if err := json.NewDecoder(result.Body).Decode(&logs); err != nil {
-				return nil, err
-			}
-			result.Body.Close()
-			allLogs[file] = logs
-		}
+	var migrations []domain.Migration
+	if err := json.NewDecoder(result.Body).Decode(&migrations); err != nil {
+		return nil, err
 	}
 
-	return allLogs, nil
+	return migrations, nil
 }

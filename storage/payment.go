@@ -15,7 +15,7 @@ func (sm *StorageManager) CreatePayment(payment domain.Payment) error {
 	payment.CreatedAt = time.Now()
 	payment.UpdatedAt = time.Now()
 
-	key := fmt.Sprintf("payments/%s/%s.json", payment.UserEmail, payment.ID)
+	key := fmt.Sprintf("payments/%s/%s.json", payment.Email, payment.ID)
 	paymentBytes, err := json.Marshal(payment)
 	if err != nil {
 		return err
@@ -40,7 +40,7 @@ func (sm *StorageManager) GetPayment(userEmail, paymentID string) (domain.Paymen
 
 func (sm *StorageManager) UpdatePayment(payment domain.Payment) error {
 	payment.UpdatedAt = time.Now()
-	key := fmt.Sprintf("payments/%s/%s.json", payment.UserEmail, payment.ID)
+	key := fmt.Sprintf("payments/%s/%s.json", payment.Email, payment.ID)
 	paymentBytes, err := json.Marshal(payment)
 	if err != nil {
 		return err

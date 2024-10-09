@@ -9,8 +9,8 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// StoreCreds stores encrypted credentials in S3
-func (h *Server) StoreCreds(c *gin.Context) {
+// storeCredential stores encrypted credentials in S3
+func (h *Server) storeCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
@@ -25,7 +25,7 @@ func (h *Server) StoreCreds(c *gin.Context) {
 		return
 	}
 
-	for key, value := range creds.Values {
+	for key, value := range creds.Secret {
 
 		encryptedValue, err := pkg.Encrypt(value, secret)
 		if err != nil {
@@ -33,18 +33,18 @@ func (h *Server) StoreCreds(c *gin.Context) {
 				"event": "storeCreds",
 				"error": err.Error(),
 			}).Error("Encryption failed")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption failed"})
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Encryption failed"})
 			return
 		}
-		creds.Values[key] = encryptedValue
+		creds.Secret[key] = encryptedValue
 	}
 
-	if err := h.StorageMgr.StoreCreds(email, creds); err != nil {
+	if err := h.storageMgr.StoreCreds(email, creds); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "storeCreds",
 			"error": err.Error(),
 		}).Error("Failed to store credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to store credentials"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to store credentials"})
 		return
 	}
 
@@ -55,8 +55,8 @@ func (h *Server) StoreCreds(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials stored successfully"})
 }
 
-// EditCreds edits stored credentials in S3
-func (h *Server) EditCreds(c *gin.Context) {
+// editCredential edits stored credentials in S3
+func (h *Server) editCredential(c *gin.Context) {
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
@@ -70,19 +70,19 @@ func (h *Server) EditCreds(c *gin.Context) {
 		return
 	}
 
-	savedCreds, err := h.StorageMgr.GetCreds(email, creds.Key)
+	savedCreds, err := h.storageMgr.FindCredentialByID(email, creds.ID)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
 			"error": err.Error(),
 		}).Error("Failed to retrieve credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve credentials"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to retrieve credentials"})
 		return
 	}
 
-	for key, value := range creds.Values {
+	for key, value := range creds.Secret {
 
-		if savedValue, ok := savedCreds.Values[key]; ok {
+		if savedValue, ok := savedCreds.Secret[key]; ok {
 			if savedValue == value {
 				continue
 			}
@@ -94,18 +94,18 @@ func (h *Server) EditCreds(c *gin.Context) {
 				"event": "editCreds",
 				"error": err.Error(),
 			}).Error("Encryption failed")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Encryption failed"})
+			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Encryption failed"})
 			return
 		}
-		creds.Values[key] = encryptedValue
+		creds.Secret[key] = encryptedValue
 	}
 
-	if err := h.StorageMgr.UpdateCreds(email, creds); err != nil {
+	if err := h.storageMgr.UpdateCreds(email, creds); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
 			"error": err.Error(),
 		}).Error("Failed to edit credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to edit credentials"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to edit credentials"})
 		return
 	}
 
@@ -116,18 +116,18 @@ func (h *Server) EditCreds(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials edited successfully"})
 }
 
-// DeleteCreds deletes stored credentials from S3
-func (h *Server) DeleteCreds(c *gin.Context) {
+// deleteCredential deletes stored credentials from S3
+func (h *Server) deleteCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	key := c.Param("key")
 
-	if err := h.StorageMgr.DeleteCreds(email, key); err != nil {
+	if err := h.storageMgr.DeleteCreds(email, key); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "deleteCreds",
 			"error": err.Error(),
 		}).Error("Failed to delete credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete credentials"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to delete credentials"})
 		return
 	}
 
@@ -138,36 +138,36 @@ func (h *Server) DeleteCreds(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials deleted successfully"})
 }
 
-// ViewCreds views stored credentials from S3
-func (h *Server) ViewCreds(c *gin.Context) {
+// viewCredential views stored credentials from S3
+func (h *Server) viewCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 	key := c.Param("key")
 
-	creds, err := h.StorageMgr.GetCreds(email, key)
+	creds, err := h.storageMgr.FindCredentialByID(email, key)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "viewCreds",
 			"key":   key,
 			"error": err.Error(),
 		}).Error("Failed to retrieve credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve credentials"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to retrieve credentials"})
 		return
 	}
 
 	if secret != "" {
-		for k, encryptedValue := range creds.Values {
+		for k, encryptedValue := range creds.Secret {
 			decryptedValue, err := pkg.Decrypt(encryptedValue, secret)
 			if err != nil {
 				pkg.Log.WithFields(logrus.Fields{
 					"event": "viewCreds",
 					"error": err.Error(),
 				}).Error("Decryption failed")
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Decryption failed"})
+				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Decryption failed"})
 				return
 			}
-			creds.Values[k] = decryptedValue
+			creds.Secret[k] = decryptedValue
 		}
 	}
 
@@ -179,17 +179,17 @@ func (h *Server) ViewCreds(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"credentials": creds})
 }
 
-// ListCreds lists stored credentials from S3
-func (h *Server) ListCreds(c *gin.Context) {
+// listCredential lists stored credentials from S3
+func (h *Server) listCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
-	creds, err := h.StorageMgr.ListCreds(email)
+	creds, err := h.storageMgr.ListCredential(email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "listCreds",
 			"error": err.Error(),
 		}).Error("Failed to list credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to list credentials"})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to list credentials"})
 		return
 	}
 

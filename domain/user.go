@@ -11,13 +11,18 @@ type User struct {
 	UpdatedAt    time.Time `json:"updated_at"`
 }
 
-type LoginData struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
-}
+func (u *User) Update(user User) {
+	if user.PasswordSalt != "" {
+		u.PasswordSalt = user.PasswordSalt
+	}
 
-type ChangePasswordData struct {
-	Email           string `json:"email"`
-	CurrentPassword string `json:"current_password"`
-	NewPassword     string `json:"new_password"`
+	if user.Password != "" {
+		u.Password = user.Password
+	}
+
+	if user.Email != "" {
+		u.Email = user.Email
+	}
+
+	u.UpdatedAt = time.Now()
 }

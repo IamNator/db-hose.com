@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func (h *Server) Backup(c *gin.Context) {
+func (h *Server) backup(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	key := c.Param("key")
@@ -21,45 +21,45 @@ func (h *Server) Backup(c *gin.Context) {
 	secret := c.Query("secret")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := h.StorageMgr.GetCreds(email, key)
+	encryptedCreds, err := h.storageMgr.FindCredentialByID(email, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
-	encryptedUser := encryptedCreds.Values["user"]
-	encryptedPassword := encryptedCreds.Values["password"]
-	encryptedHost := encryptedCreds.Values["host"]
-	encryptedPort := encryptedCreds.Values["port"]
-	encryptedDBName := encryptedCreds.Values["dbname"]
+	encryptedUser := encryptedCreds.Secret["user"]
+	encryptedPassword := encryptedCreds.Secret["password"]
+	encryptedHost := encryptedCreds.Secret["host"]
+	encryptedPort := encryptedCreds.Secret["port"]
+	encryptedDBName := encryptedCreds.Secret["dbname"]
 
 	user, err := pkg.Decrypt(encryptedUser, secret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	password, err := pkg.Decrypt(encryptedPassword, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	host, err := pkg.Decrypt(encryptedHost, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	port, err := pkg.Decrypt(encryptedPort, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	dbname, err := pkg.Decrypt(encryptedDBName, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -70,7 +70,7 @@ func (h *Server) Backup(c *gin.Context) {
 	// Create a pipe for the output
 	outPipe, err := cmd.StdoutPipe()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *Server) Backup(c *gin.Context) {
 			"event": "backup",
 			"error": err.Error(),
 		}).Error("Backup failed")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -95,7 +95,7 @@ func (h *Server) Backup(c *gin.Context) {
 
 	// Wait for the command to complete
 	if err := cmd.Wait(); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Backup failed", "details": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Backup failed", "details": err.Error()})
 		return
 	}
 
@@ -106,17 +106,17 @@ func (h *Server) Backup(c *gin.Context) {
 	key = "backups/" + fileName
 	body := bytes.NewReader(buf.Bytes())
 
-	if err := h.StorageMgr.StoreBackup(key, body); err != nil {
+	if err := h.storageMgr.StoreBackup(key, body); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "backup",
 			"error": err.Error(),
 		}).Error("Failed to upload backup to S3")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload backup", "details": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to upload backup", "details": err.Error()})
 		return
 	}
 
 	// Log the backup
-	h.StorageMgr.LogBackup(duration, user, key)
+	h.storageMgr.LogBackup(duration, user, key)
 
 	pkg.Log.WithFields(logrus.Fields{
 		"event": "backup",
@@ -126,7 +126,7 @@ func (h *Server) Backup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Backup completed", "file": key})
 }
 
-func (h *Server) Restore(c *gin.Context) {
+func (h *Server) restore(c *gin.Context) {
 
 	key := c.Param("key")
 	email := c.Value("email").(string)
@@ -135,56 +135,56 @@ func (h *Server) Restore(c *gin.Context) {
 	fileName := c.Query("file")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := h.StorageMgr.GetCreds(email, key)
+	encryptedCreds, err := h.storageMgr.FindCredentialByID(email, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
-	encryptedUser := encryptedCreds.Values["user"]
-	encryptedPassword := encryptedCreds.Values["password"]
-	encryptedHost := encryptedCreds.Values["host"]
-	encryptedPort := encryptedCreds.Values["port"]
-	encryptedDBName := encryptedCreds.Values["dbname"]
+	encryptedUser := encryptedCreds.Secret["user"]
+	encryptedPassword := encryptedCreds.Secret["password"]
+	encryptedHost := encryptedCreds.Secret["host"]
+	encryptedPort := encryptedCreds.Secret["port"]
+	encryptedDBName := encryptedCreds.Secret["dbname"]
 
 	user, err := pkg.Decrypt(encryptedUser, secret)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	password, err := pkg.Decrypt(encryptedPassword, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	host, err := pkg.Decrypt(encryptedHost, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	port, err := pkg.Decrypt(encryptedPort, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	dbname, err := pkg.Decrypt(encryptedDBName, key)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Download the file from S3
-	result, err := h.StorageMgr.FetchBackup(fileName)
+	result, err := h.storageMgr.FetchBackup(fileName, time.Now())
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "restore",
 			"error": err.Error(),
 		}).Error("Failed to download backup from S3")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to download backup", "details": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to download backup", "details": err.Error()})
 		return
 	}
 
@@ -195,7 +195,7 @@ func (h *Server) Restore(c *gin.Context) {
 	// Create a pipe for the input
 	inPipe, err := cmd.StdinPipe()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
@@ -207,7 +207,7 @@ func (h *Server) Restore(c *gin.Context) {
 			"event": "restore",
 			"error": err.Error(),
 		}).Error("Restore failed")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Restore failed", "details": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Restore failed", "details": err.Error()})
 		return
 	}
 
@@ -215,7 +215,7 @@ func (h *Server) Restore(c *gin.Context) {
 
 	// Write the S3 object to the command input
 	if _, err := io.Copy(inPipe, bodyReader); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 	inPipe.Close()
@@ -226,14 +226,14 @@ func (h *Server) Restore(c *gin.Context) {
 			"event": "restore",
 			"error": err.Error(),
 		}).Error("Restore failed")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Restore failed", "details": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Restore failed", "details": err.Error()})
 		return
 	}
 
 	duration := time.Since(start)
 
 	// Log the restore
-	h.StorageMgr.LogRestore(duration, email, fileName)
+	h.storageMgr.LogRestore(duration, email, fileName)
 
 	pkg.Log.WithFields(logrus.Fields{
 		"event": "restore",
@@ -243,17 +243,17 @@ func (h *Server) Restore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Restore completed"})
 }
 
-func (h *Server) Logs(c *gin.Context) {
+func (h *Server) logs(c *gin.Context) {
 	// Logs
 	email := c.Value("email").(string)
 
-	logs, err := h.StorageMgr.FetchLogs(email)
+	logs, err := h.storageMgr.FetchLogs(email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "logs",
 			"error": err.Error(),
 		}).Error("Failed to fetch logs")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch logs", "details": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to fetch logs", "details": err.Error()})
 		return
 	}
 

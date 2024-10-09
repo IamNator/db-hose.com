@@ -6,13 +6,14 @@ import (
 
 	"dbhose/domain"
 	"dbhose/pkg"
+	"dbhose/schema"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Server) Signup(c *gin.Context) {
+func (h *Server) signup(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -20,7 +21,7 @@ func (h *Server) Signup(c *gin.Context) {
 	}
 
 	// Check if user already exists
-	if _, err := h.StorageMgr.GetUser(user.Email); err == nil {
+	if _, err := h.storageMgr.GetUser(user.Email); err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
 	}
@@ -30,36 +31,36 @@ func (h *Server) Signup(c *gin.Context) {
 	saltedPassword := user.PasswordSalt + user.Password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(saltedPassword), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 	user.Password = string(hashedPassword)
 
 	// Store user in S3
-	if err := h.StorageMgr.StoreUser(user); err != nil {
+	if err := h.storageMgr.StoreUser(user); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error":  err.Error(),
 			"method": "Signup",
 		}).Error("Failed to store user")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
-	token, err := h.SessionMgr.CreateSession(user.Email)
+	token, err := h.sessionMgr.CreateSession(user.Email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error":  err.Error(),
 			"method": "Signup",
 		}).Error("Failed to create session")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Signup successful", "data": gin.H{"token": token}})
 }
 
-func (h *Server) Login(c *gin.Context) {
-	var loginData domain.LoginData
+func (h *Server) login(c *gin.Context) {
+	var loginData schema.LoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -69,7 +70,7 @@ func (h *Server) Login(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	user, err := h.StorageMgr.GetUser(loginData.Email)
+	user, err := h.storageMgr.GetUser(loginData.Email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -86,25 +87,25 @@ func (h *Server) Login(c *gin.Context) {
 	}
 
 	// Generate JWT token
-	token, err := h.SessionMgr.CreateSession(loginData.Email)
+	token, err := h.sessionMgr.CreateSession(loginData.Email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to create session")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (h *Server) Logout(c *gin.Context) {
+func (h *Server) logout(c *gin.Context) {
 	email := c.Value("email").(string)
-	h.SessionMgr.DeleteSession(email)
+	h.sessionMgr.DeleteSession(email)
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
 
-func (h *Server) DeleteAccount(c *gin.Context) {
+func (h *Server) deleteAccount(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -115,7 +116,7 @@ func (h *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	storedUser, err := h.StorageMgr.GetUser(user.Email)
+	storedUser, err := h.storageMgr.GetUser(user.Email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -132,36 +133,36 @@ func (h *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	// Delete user from S3
-	if err := h.StorageMgr.DeleteUser(user.Email); err != nil {
+	if err := h.storageMgr.DeleteUser(user.Email); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to delete user")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := h.StorageMgr.DeleteAllCreds(user.Email); err != nil {
+	if err := h.storageMgr.DeleteAllCreds(user.Email); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to delete user credentials")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
-	h.SessionMgr.DeleteSession(user.Email)
+	h.sessionMgr.DeleteSession(user.Email)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }
 
-func (h *Server) ChangePassword(c *gin.Context) {
-	var changePasswordData domain.ChangePasswordData
+func (h *Server) changePassword(c *gin.Context) {
+	var changePasswordData schema.ChangePasswordData
 	if err := c.ShouldBindJSON(&changePasswordData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Fetch user from S3
-	user, err := h.StorageMgr.GetUser(changePasswordData.Email)
+	user, err := h.storageMgr.GetUser(changePasswordData.Email)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
 		return
@@ -177,18 +178,18 @@ func (h *Server) ChangePassword(c *gin.Context) {
 	// Hash new password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(changePasswordData.NewPassword), bcrypt.DefaultCost)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Update user password in S3
 	user.Password = string(hashedPassword)
-	if err := h.StorageMgr.UpdateUser(user); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	if err := h.storageMgr.UpdateUser(user); err != nil {
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
-	h.SessionMgr.DeleteSession(user.Email)
+	h.sessionMgr.DeleteSession(user.Email)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Password changed successfully"})
 }

@@ -3,84 +3,137 @@ package storage
 import (
 	"bytes"
 	"dbhose/domain"
-	utils "dbhose/pkg"
 	"encoding/json"
 	"fmt"
 )
 
 func (sm *StorageManager) StoreCreds(email string, creds domain.Credential) error {
-	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, creds.Key)
-	credsBytes, err := json.Marshal(creds)
+	// download existing creds
+	fileName := fmt.Sprintf("credentials/%s.json", email)
+	result, err := sm.DownloadFromS3(fileName)
 	if err != nil {
 		return err
 	}
-	return sm.UploadToS3(key, bytes.NewReader(credsBytes))
+
+	defer result.Body.Close()
+	var existingCreds []domain.Credential
+	if err := json.NewDecoder(result.Body).Decode(&existingCreds); err != nil {
+		return err
+	}
+
+	// append new creds
+	existingCreds = append(existingCreds, creds)
+
+	// upload updated creds
+	byteData, err := json.Marshal(existingCreds)
+	if err != nil {
+		return err
+	}
+
+	return sm.UploadToS3(fileName, bytes.NewReader(byteData))
 }
 
 func (sm *StorageManager) UpdateCreds(email string, creds domain.Credential) error {
-	return sm.StoreCreds(email, creds)
+	// download existing creds
+	fileName := fmt.Sprintf("credentials/%s.json", email)
+	result, err := sm.DownloadFromS3(fileName)
+	if err != nil {
+		return err
+	}
+
+	defer result.Body.Close()
+	var existingCreds []domain.Credential
+	if err := json.NewDecoder(result.Body).Decode(&existingCreds); err != nil {
+		return err
+	}
+
+	// find and update creds
+	for i, c := range existingCreds {
+		if c.ID == creds.ID {
+			existingCreds[i] = creds
+			break
+		}
+	}
+
+	// upload updated creds
+	byteData, err := json.Marshal(existingCreds)
+	if err != nil {
+		return err
+	}
+
+	return sm.UploadToS3(fileName, bytes.NewReader(byteData))
 }
 
-func (sm *StorageManager) GetCreds(email, credKey string) (domain.Credential, error) {
-	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, credKey)
-	result, err := sm.DownloadFromS3(key)
+func (sm *StorageManager) FindCredentialByID(email, id string) (domain.Credential, error) {
+	fileName := fmt.Sprintf("credentials/%s.json", email)
+	result, err := sm.DownloadFromS3(fileName)
 	if err != nil {
 		return domain.Credential{}, err
 	}
-	defer result.Body.Close()
 
-	var creds domain.Credential
+	defer result.Body.Close()
+	var creds []domain.Credential
 	if err := json.NewDecoder(result.Body).Decode(&creds); err != nil {
 		return domain.Credential{}, err
 	}
-	return creds, nil
+
+	for _, c := range creds {
+		if c.ID == id {
+			return c, nil
+		}
+	}
+
+	return domain.Credential{}, fmt.Errorf("credential with id %s not found", id)
 }
 
-func (sm *StorageManager) ListCreds(email string) ([]domain.Credential, error) {
-	hashedEmail := utils.Hash(email)
-	prefix := fmt.Sprintf("credentials/%s/", hashedEmail)
-	files, err := sm.ListFiles(prefix)
+func (sm *StorageManager) ListCredential(email string) ([]domain.Credential, error) {
+	fileName := fmt.Sprintf("credentials/%s.json", email)
+	result, err := sm.DownloadFromS3(fileName)
 	if err != nil {
 		return nil, err
 	}
 
-	var creds []domain.Credential
-	for _, file := range files {
-		result, err := sm.DownloadFromS3(file)
-		if err != nil {
-			return nil, err
-		}
-		defer result.Body.Close()
+	defer result.Body.Close()
 
-		var cred domain.Credential
-		if err := json.NewDecoder(result.Body).Decode(&cred); err != nil {
-			return nil, err
-		}
-		creds = append(creds, cred)
+	var creds []domain.Credential
+	if err := json.NewDecoder(result.Body).Decode(&creds); err != nil {
+		return nil, err
 	}
+
 	return creds, nil
 }
 
-func (sm *StorageManager) DeleteCreds(email, credKey string) error {
-	hashedEmail := utils.Hash(email)
-	key := fmt.Sprintf("credentials/%s/%s.json", hashedEmail, credKey)
-	return sm.DeleteObject(key)
-}
-
-func (sm *StorageManager) DeleteAllCreds(email string) error {
-	hashedEmail := utils.Hash(email)
-	prefix := fmt.Sprintf("credentials/%s/", hashedEmail)
-	files, err := sm.ListFiles(prefix)
+func (sm *StorageManager) DeleteCreds(email, id string) error {
+	fileName := fmt.Sprintf("credentials/%s.json", email)
+	result, err := sm.DownloadFromS3(fileName)
 	if err != nil {
 		return err
 	}
 
-	for _, file := range files {
-		if err := sm.DeleteObject(file); err != nil {
-			return err
+	defer result.Body.Close()
+	var existingCreds []domain.Credential
+	if err := json.NewDecoder(result.Body).Decode(&existingCreds); err != nil {
+		return err
+	}
+
+	// find and delete creds
+	for i, c := range existingCreds {
+		if c.ID == id {
+			existingCreds = append(existingCreds[:i], existingCreds[i+1:]...)
+			break
 		}
 	}
-	return nil
+
+	// upload updated creds
+	byteData, err := json.Marshal(existingCreds)
+	if err != nil {
+		return err
+	}
+
+	return sm.UploadToS3(fileName, bytes.NewReader(byteData))
+}
+
+func (sm *StorageManager) DeleteAllCreds(email string) error {
+	fileName := fmt.Sprintf("credentials/%s.json", email)
+	return sm.DeleteObject(fileName)
 }

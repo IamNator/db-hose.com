@@ -4,7 +4,7 @@ import "time"
 
 type Payment struct {
 	ID        string    `json:"id"`
-	UserEmail string    `json:"user_email"`
+	Email     string    `json:"email"`
 	Amount    float64   `json:"amount"`
 	Currency  string    `json:"currency"` // USDT
 	Network   string    `json:"network"`  // TRX, BSC, or TON
