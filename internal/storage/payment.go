@@ -2,7 +2,7 @@ package storage
 
 import (
 	"bytes"
-	"dbhose/domain"
+	"dbhose/internal/domain"
 	"encoding/json"
 	"fmt"
 	"time"

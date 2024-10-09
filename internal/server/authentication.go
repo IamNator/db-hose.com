@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"time"
 
-	"dbhose/domain"
+	"dbhose/internal/domain"
+	"dbhose/internal/schema"
 	"dbhose/pkg"
-	"dbhose/schema"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"dbhose/domain"
+	"dbhose/internal/domain"
 	"dbhose/pkg"
 	"encoding/json"
 )

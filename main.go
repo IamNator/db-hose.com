@@ -7,9 +7,9 @@ import (
 	"github.com/joho/godotenv"
 
 	"dbhose/config"
+	"dbhose/internal/server"
+	"dbhose/internal/storage"
 	"dbhose/pkg"
-	"dbhose/server"
-	"dbhose/storage"
 )
 
 func init() {

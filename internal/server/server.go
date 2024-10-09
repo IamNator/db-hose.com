@@ -2,8 +2,8 @@ package server
 
 import (
 	"dbhose/config"
+	"dbhose/internal/storage"
 	utils "dbhose/pkg"
-	"dbhose/storage"
 
 	"github.com/gin-gonic/gin"
 )

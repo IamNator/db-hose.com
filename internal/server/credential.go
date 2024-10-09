@@ -1,7 +1,7 @@
 package server
 
 import (
-	"dbhose/domain"
+	"dbhose/internal/domain"
 	"dbhose/pkg"
 	"net/http"
 
