@@ -92,7 +92,7 @@ const docTemplate = `{
                 "summary": "Delete a user account",
                 "parameters": [
                     {
-                        "description": "Account deletion credentials",
+                        "description": "Account deletion request",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -144,7 +144,7 @@ const docTemplate = `{
                 "summary": "Log in a user",
                 "parameters": [
                     {
-                        "description": "Login credentials",
+                        "description": "Login Request",
                         "name": "request",
                         "in": "body",
                         "required": true,
@@ -227,7 +227,7 @@ const docTemplate = `{
                 "summary": "Sign up a new user",
                 "parameters": [
                     {
-                        "description": "Signup credentials",
+                        "description": "Signup Request",
                         "name": "request",
                         "in": "body",
                         "required": true,

@@ -18,7 +18,7 @@ import (
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body schema.SignupRequest true "Signup credentials"
+// @Param request body schema.SignupRequest true "Signup Request"
 // @Success 200 {object} schema.SignupResponse
 // @Failure 400 {object} schema.ErrorResponse
 // @Failure 409 {object} schema.ErrorResponse
@@ -75,7 +75,7 @@ func (h *Server) signup(c *gin.Context) {
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body schema.LoginRequest true "Login credentials"
+// @Param request body schema.LoginRequest true "Login Request"
 // @Success 200 {object} schema.LoginResponse
 // @Failure 400 {object} schema.ErrorResponse
 // @Failure 401 {object} schema.ErrorResponse
@@ -140,7 +140,7 @@ func (h *Server) logout(c *gin.Context) {
 // @Tags Authentication
 // @Accept json
 // @Produce json
-// @Param request body schema.DeleteAccountRequest true "Account deletion credentials"
+// @Param request body schema.DeleteAccountRequest true "Account deletion request"
 // @Security BearerAuth
 // @Success 200 {object} schema.GenericResponse
 // @Failure 400 {object} schema.ErrorResponse

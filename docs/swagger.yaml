@@ -112,7 +112,7 @@ paths:
       - application/json
       description: Permanently delete a user account and associated data
       parameters:
-      - description: Account deletion credentials
+      - description: Account deletion request
         in: body
         name: request
         required: true
@@ -148,7 +148,7 @@ paths:
       - application/json
       description: Authenticate a user and return a session token
       parameters:
-      - description: Login credentials
+      - description: Login Request
         in: body
         name: request
         required: true
@@ -201,7 +201,7 @@ paths:
       - application/json
       description: Create a new user account
       parameters:
-      - description: Signup credentials
+      - description: Signup Request
         in: body
         name: request
         required: true
