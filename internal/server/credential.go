@@ -9,7 +9,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// storeCredential stores encrypted credentials in S3
+// @Summary Store credentials
+// @Description Backup DB credentials
+// @Tags Credential
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /credential [post]
 func (h *Server) storeCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
@@ -55,7 +64,16 @@ func (h *Server) storeCredential(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials stored successfully"})
 }
 
-// editCredential edits stored credentials in S3
+// @Summary Edit credentials
+// @Description Edit stored credentials
+// @Tags Credential
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /credential [put]
 func (h *Server) editCredential(c *gin.Context) {
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
@@ -116,13 +134,23 @@ func (h *Server) editCredential(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials edited successfully"})
 }
 
-// deleteCredential deletes stored credentials from S3
+// @Summary Delete credentials
+// @Description Delete stored credentials
+// @Tags Credential
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Security Bearer
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /credential/{id} [delete]
 func (h *Server) deleteCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
-	key := c.Param("key")
+	id := c.Param("id")
 
-	if err := h.storageMgr.DeleteCreds(email, key); err != nil {
+	if err := h.storageMgr.DeleteCreds(email, id); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "deleteCreds",
 			"error": err.Error(),
@@ -133,23 +161,33 @@ func (h *Server) deleteCredential(c *gin.Context) {
 
 	pkg.Log.WithFields(logrus.Fields{
 		"event": "deleteCreds",
-		"key":   key,
+		"id":    id,
 	}).Info("Credentials deleted successfully")
 	c.JSON(http.StatusOK, gin.H{"message": "Credentials deleted successfully"})
 }
 
-// viewCredential views stored credentials from S3
+// @Summary View credentials
+// @Description View stored credentials
+// @Tags Credential
+// @Accept json
+// @Produce json
+// @Param id path string true "id"
+// @Security Bearer
+// @Success 200 {object} schema.CredentialsResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /credential/{id} [get]
 func (h *Server) viewCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
-	key := c.Param("key")
+	id := c.Param("id")
 
-	creds, err := h.storageMgr.FindCredentialByID(email, key)
+	creds, err := h.storageMgr.FindCredentialByID(email, id)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "viewCreds",
-			"key":   key,
+			"id":    id,
 			"error": err.Error(),
 		}).Error("Failed to retrieve credentials")
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to retrieve credentials"})
@@ -179,7 +217,16 @@ func (h *Server) viewCredential(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"credentials": creds})
 }
 
-// listCredential lists stored credentials from S3
+// @Summary List credentials
+// @Description List stored credentials
+// @Tags Credential
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} schema.CredentialsResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /credential [get]
 func (h *Server) listCredential(c *gin.Context) {
 
 	email := c.Value("email").(string)

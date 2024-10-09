@@ -1,5 +1,37 @@
 basePath: /
 definitions:
+  domain.Credential:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: string
+      secret:
+        additionalProperties:
+          type: string
+        type: object
+      updated_at:
+        type: string
+    type: object
+  domain.Log:
+    properties:
+      description:
+        type: string
+      duration:
+        description: 1h2m3s
+        type: string
+      email:
+        type: string
+      file:
+        type: string
+      name:
+        type: string
+      timestamp:
+        description: "2006-01-02 15:04:05"
+        type: string
+    type: object
   schema.ChangePasswordRequest:
     properties:
       current_password:
@@ -8,6 +40,13 @@ definitions:
         type: string
       new_password:
         type: string
+    type: object
+  schema.CredentialsResponse:
+    properties:
+      credentials:
+        items:
+          $ref: '#/definitions/domain.Credential'
+        type: array
     type: object
   schema.DeleteAccountRequest:
     properties:
@@ -27,6 +66,17 @@ definitions:
     type: object
   schema.GenericResponse:
     properties:
+      message:
+        type: string
+    type: object
+  schema.LogResponse:
+    properties:
+      data:
+        additionalProperties:
+          items:
+            $ref: '#/definitions/domain.Log'
+          type: array
+        type: object
       message:
         type: string
     type: object
@@ -70,6 +120,42 @@ info:
   title: DBHose API
   version: "1.0"
 paths:
+  /backup/{key}:
+    post:
+      consumes:
+      - application/json
+      description: Backup a database
+      parameters:
+      - description: Credential key
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: request
+        in: query
+        name: secret
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Backup a database
+      tags:
+      - Migration
   /change-password:
     post:
       consumes:
@@ -102,10 +188,144 @@ paths:
           schema:
             $ref: '#/definitions/schema.ErrorResponse'
       security:
-      - BearerAuth: []
+      - Bearer: []
       summary: Change user password
       tags:
       - Authentication
+  /credential:
+    get:
+      consumes:
+      - application/json
+      description: List stored credentials
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.CredentialsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: List credentials
+      tags:
+      - Credential
+    post:
+      consumes:
+      - application/json
+      description: Backup DB credentials
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Store credentials
+      tags:
+      - Credential
+    put:
+      consumes:
+      - application/json
+      description: Edit stored credentials
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Edit credentials
+      tags:
+      - Credential
+  /credential/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete stored credentials
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Delete credentials
+      tags:
+      - Credential
+    get:
+      consumes:
+      - application/json
+      description: View stored credentials
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.CredentialsResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: View credentials
+      tags:
+      - Credential
   /delete:
     post:
       consumes:
@@ -138,7 +358,7 @@ paths:
           schema:
             $ref: '#/definitions/schema.ErrorResponse'
       security:
-      - BearerAuth: []
+      - Bearer: []
       summary: Delete a user account
       tags:
       - Authentication
@@ -191,10 +411,72 @@ paths:
           schema:
             $ref: '#/definitions/schema.ErrorResponse'
       security:
-      - BearerAuth: []
+      - Bearer: []
       summary: Log out a user
       tags:
       - Authentication
+  /logs:
+    get:
+      consumes:
+      - application/json
+      description: Fetch logs
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.LogResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Fetch logs
+      tags:
+      - Migration
+  /restore/{key}:
+    post:
+      consumes:
+      - application/json
+      description: Restore a database
+      parameters:
+      - description: Credential key
+        in: path
+        name: key
+        required: true
+        type: string
+      - description: request
+        in: query
+        name: secret
+        required: true
+        type: string
+      - description: Backup file
+        in: query
+        name: file
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/schema.GenericResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+        "422":
+          description: Unprocessable Entity
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Restore a database
+      tags:
+      - Migration
   /signup:
     post:
       consumes:

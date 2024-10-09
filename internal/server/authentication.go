@@ -125,7 +125,7 @@ func (h *Server) login(c *gin.Context) {
 // @Description Invalidate the user's session
 // @Tags Authentication
 // @Produce json
-// @Security BearerAuth
+// @Security Bearer
 // @Success 200 {object} schema.GenericResponse
 // @Failure 401 {object} schema.ErrorResponse
 // @Router /logout [post]
@@ -141,7 +141,7 @@ func (h *Server) logout(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body schema.DeleteAccountRequest true "Account deletion request"
-// @Security BearerAuth
+// @Security Bearer
 // @Success 200 {object} schema.GenericResponse
 // @Failure 400 {object} schema.ErrorResponse
 // @Failure 401 {object} schema.ErrorResponse
@@ -202,7 +202,7 @@ func (h *Server) deleteAccount(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param request body schema.ChangePasswordRequest true "Password change request"
-// @Security BearerAuth
+// @Security Bearer
 // @Success 200 {object} schema.GenericResponse
 // @Failure 400 {object} schema.ErrorResponse
 // @Failure 401 {object} schema.ErrorResponse

@@ -13,8 +13,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// @Summary Backup a database
+// @Description Backup a database
+// @Tags Migration
+// @Accept json
+// @Produce json
+// @Param key path string true "Credential key"
+// @Param secret query string true "request"
+// @Security Bearer
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /backup/{key} [post]
 func (h *Server) backup(c *gin.Context) {
-
 	email := c.Value("email").(string)
 	key := c.Param("key")
 
@@ -126,6 +137,19 @@ func (h *Server) backup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Backup completed", "file": key})
 }
 
+// @Summary Restore a database
+// @Description Restore a database
+// @Tags Migration
+// @Accept json
+// @Produce json
+// @Param key path string true "Credential key"
+// @Param secret query string true "request"
+// @Param file query string true "Backup file"
+// @Security Bearer
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /restore/{key} [post]
 func (h *Server) restore(c *gin.Context) {
 
 	key := c.Param("key")
@@ -243,6 +267,15 @@ func (h *Server) restore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Restore completed"})
 }
 
+// @Summary Fetch logs
+// @Description Fetch logs
+// @Tags Migration
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} schema.LogResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Router /logs [get]
 func (h *Server) logs(c *gin.Context) {
 	// Logs
 	email := c.Value("email").(string)

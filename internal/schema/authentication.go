@@ -1,5 +1,7 @@
 package schema
 
+import "dbhose/internal/domain"
+
 type LoginRequest struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
@@ -38,4 +40,13 @@ type LoginResponse struct {
 type DeleteAccountRequest struct {
 	Email    string `json:"email" binding:"required,email"`
 	Password string `json:"password" binding:"required,min=8"`
+}
+
+type CredentialsResponse struct {
+	Credentials []domain.Credential `json:"credentials"`
+}
+
+type LogResponse struct {
+	Message string `json:"message"`
+	Data    map[string][]domain.Log
 }
