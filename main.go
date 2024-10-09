@@ -18,8 +18,12 @@ func init() {
 	config.CheckPrograms()
 }
 
+// @title DBHose API
+// @version 1.0
+// @description This is the API for DBHose
+// @host localhost:8080
+// @BasePath /
 func main() {
-
 	storageMgr, err := storage.New()
 	if err != nil {
 		log.Fatalf("failed to create storage manager: %v", err)

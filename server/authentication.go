@@ -13,6 +13,17 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// @Summary Sign up a new user
+// @Description Create a new user account
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body schema.SignupRequest true "Signup credentials"
+// @Success 200 {object} schema.SignupResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 409 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /signup [post]
 func (h *Server) signup(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -59,8 +70,19 @@ func (h *Server) signup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Signup successful", "data": gin.H{"token": token}})
 }
 
+// @Summary Log in a user
+// @Description Authenticate a user and return a session token
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body schema.LoginRequest true "Login credentials"
+// @Success 200 {object} schema.LoginResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 401 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /login [post]
 func (h *Server) login(c *gin.Context) {
-	var loginData schema.LoginData
+	var loginData schema.LoginRequest
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -75,14 +97,14 @@ func (h *Server) login(c *gin.Context) {
 		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to fetch user")
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email"})
 		return
 	}
 
 	// Compare passwords
 	saltedPassword := user.PasswordSalt + loginData.Password
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(saltedPassword)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Password"})
 		return
 	}
 
@@ -96,15 +118,35 @@ func (h *Server) login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"token": token})
+	c.JSON(http.StatusOK, schema.LoginResponse{Token: token})
 }
 
+// @Summary Log out a user
+// @Description Invalidate the user's session
+// @Tags Authentication
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} schema.GenericResponse
+// @Failure 401 {object} schema.ErrorResponse
+// @Router /logout [post]
 func (h *Server) logout(c *gin.Context) {
 	email := c.Value("email").(string)
 	h.sessionMgr.DeleteSession(email)
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
 
+// @Summary Delete a user account
+// @Description Permanently delete a user account and associated data
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body schema.DeleteAccountRequest true "Account deletion credentials"
+// @Security BearerAuth
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 401 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /delete [post]
 func (h *Server) deleteAccount(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
@@ -154,8 +196,20 @@ func (h *Server) deleteAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }
 
+// @Summary Change user password
+// @Description Change the password for a user account
+// @Tags Authentication
+// @Accept json
+// @Produce json
+// @Param request body schema.ChangePasswordRequest true "Password change request"
+// @Security BearerAuth
+// @Success 200 {object} schema.GenericResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Failure 401 {object} schema.ErrorResponse
+// @Failure 422 {object} schema.ErrorResponse
+// @Router /change-password [post]
 func (h *Server) changePassword(c *gin.Context) {
-	var changePasswordData schema.ChangePasswordData
+	var changePasswordData schema.ChangePasswordRequest
 	if err := c.ShouldBindJSON(&changePasswordData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

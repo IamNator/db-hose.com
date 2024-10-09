@@ -12,3 +12,8 @@ build-docker:
 
 run-docker:
 	docker run -p 8080:8080 db-hose
+
+doc-setup:
+	go install github.com/swaggo/swag/cmd/swag@latest
+	export PATH=$PATH:$(go env GOPATH)/bin
+	swag init

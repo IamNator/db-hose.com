@@ -42,6 +42,10 @@ docker run -d -p 8080:8080 dbhose/dbhose:latest
    ```bash
    ./dbhose
    ```
+5. Docs:
+   ```
+      http://localhost:8080/swagger/index.html
+   ```
 
 Visit `http://localhost:8080` to access the DB Hose dashboard.
 
