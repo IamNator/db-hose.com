@@ -2,6 +2,6 @@ package server
 
 import utils "dbhose/pkg"
 
-type Handler struct {
+type Server struct {
 	SessionMgr *utils.SessionManager
 }

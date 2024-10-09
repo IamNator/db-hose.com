@@ -37,27 +37,27 @@ async function login(email, password) {
 
 async function storeCreds(secret, creds) {
     const token = store.get('jwtToken'); // Retrieve the JWT token from Store.js
-    return makeRequest(`/creds/store?secret=${encodeURIComponent(secret)}`, 'POST', creds, token);
+    return makeRequest(`/credentials/store?secret=${encodeURIComponent(secret)}`, 'POST', creds, token);
 }
 
 async function editCreds(secret, creds) {
     const token = store.get('jwtToken'); // Retrieve the JWT token from Store.js
-    return makeRequest(`/creds/edit?secret=${encodeURIComponent(secret)}`, 'PUT', creds, token);
+    return makeRequest(`/credentials/edit?secret=${encodeURIComponent(secret)}`, 'PUT', creds, token);
 }
 
 async function deleteCreds(key) {
     const token = store.get('jwtToken'); // Retrieve the JWT token from Store.js
-    return makeRequest(`/creds/delete/${key}`, 'DELETE', null, token);
+    return makeRequest(`/credentials/delete/${key}`, 'DELETE', null, token);
 }
 
 async function viewCreds(key, secret) {
     const token = store.get('jwtToken'); // Retrieve the JWT token from Store.js
-    return makeRequest(`/creds/view/${key}?secret=${encodeURIComponent(secret)}`, 'GET', null, token);
+    return makeRequest(`/credentials/view/${key}?secret=${encodeURIComponent(secret)}`, 'GET', null, token);
 }
 
 async function listCreds() {
     const token = store.get('jwtToken'); // Retrieve the JWT token from Store.js
-    return makeRequest('/creds/list', 'GET', null, token);
+    return makeRequest('/credentials/list', 'GET', null, token);
 }
 
 async function backup(key, secret) {

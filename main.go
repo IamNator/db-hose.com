@@ -1,21 +1,22 @@
 package main
 
 import (
-	"dbhose/config"
-	utils "dbhose/pkg"
-	handlers "dbhose/server"
-	s3 "dbhose/storage"
 	"log"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+
+	"dbhose/config"
+	"dbhose/pkg"
+	"dbhose/server"
+	"dbhose/storage"
 )
 
 func init() {
 	godotenv.Load()
 	config.CheckEnvVars()
 	config.CheckPrograms()
-	s3.Init()
+	storage.Init()
 }
 
 func main() {
@@ -29,16 +30,16 @@ func main() {
 
 func SetupRoutes(r *gin.Engine) {
 
-	sessionManager := utils.NewSessionManager()
+	sessionManager := pkg.NewSessionManager()
 	sessionManager.InitializeSessionCleaner()
 
-	handler := handlers.Handler{
+	handler := server.Server{
 		SessionMgr: sessionManager,
 	}
 
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
-	r.Use(utils.CORSMiddleware())
+	r.Use(pkg.CORSMiddleware())
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "OK"})
 	})
@@ -49,13 +50,13 @@ func SetupRoutes(r *gin.Engine) {
 	r.POST("/delete", sessionManager.Middleware, handler.DeleteAccount)
 	r.POST("/change-password", sessionManager.Middleware, handler.ChangePassword)
 
-	r.POST("/creds/store", sessionManager.Middleware, handlers.StoreCreds)
-	r.PUT("/creds/edit", sessionManager.Middleware, handlers.EditCreds)
-	r.DELETE("/creds/delete/:key", sessionManager.Middleware, handlers.DeleteCreds)
-	r.GET("/creds/view/:key", sessionManager.Middleware, handlers.ViewCreds)
-	r.GET("/creds/list", sessionManager.Middleware, handlers.ListCreds)
+	r.POST("/credentials/store", sessionManager.Middleware, server.StoreCreds)
+	r.PUT("/credentials/edit", sessionManager.Middleware, server.EditCreds)
+	r.DELETE("/credentials/delete/:key", sessionManager.Middleware, server.DeleteCreds)
+	r.GET("/credentials/view/:key", sessionManager.Middleware, server.ViewCreds)
+	r.GET("/credentials/list", sessionManager.Middleware, server.ListCreds)
 
-	r.POST("/backup/:key", sessionManager.Middleware, handlers.Backup)
-	r.POST("/restore/:key", sessionManager.Middleware, handlers.Restore)
-	r.GET("/logs", sessionManager.Middleware, handlers.Logs)
+	r.POST("/backup/:key", sessionManager.Middleware, server.Backup)
+	r.POST("/restore/:key", sessionManager.Middleware, server.Restore)
+	r.GET("/logs", sessionManager.Middleware, server.Logs)
 }

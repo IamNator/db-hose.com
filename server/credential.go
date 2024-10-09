@@ -1,9 +1,9 @@
 package server
 
 import (
-	models "dbhose/domain"
-	utils "dbhose/pkg"
-	s3 "dbhose/storage"
+	"dbhose/domain"
+	"dbhose/pkg"
+	"dbhose/storage"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,9 +16,9 @@ func StoreCreds(c *gin.Context) {
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
-	var creds models.Credentials
+	var creds domain.Credentials
 	if err := c.BindJSON(&creds); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "storeCreds",
 			"error": err.Error(),
 		}).Error("Invalid request")
@@ -28,9 +28,9 @@ func StoreCreds(c *gin.Context) {
 
 	for key, value := range creds.Values {
 
-		encryptedValue, err := utils.Encrypt(value, secret)
+		encryptedValue, err := pkg.Encrypt(value, secret)
 		if err != nil {
-			utils.Log.WithFields(logrus.Fields{
+			pkg.Log.WithFields(logrus.Fields{
 				"event": "storeCreds",
 				"error": err.Error(),
 			}).Error("Encryption failed")
@@ -40,8 +40,8 @@ func StoreCreds(c *gin.Context) {
 		creds.Values[key] = encryptedValue
 	}
 
-	if err := s3.StoreCreds(email, creds); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := storage.StoreCreds(email, creds); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "storeCreds",
 			"error": err.Error(),
 		}).Error("Failed to store credentials")
@@ -49,7 +49,7 @@ func StoreCreds(c *gin.Context) {
 		return
 	}
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "storeCreds",
 		"creds": creds,
 	}).Info("Credentials stored successfully")
@@ -61,9 +61,9 @@ func EditCreds(c *gin.Context) {
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
-	var creds models.Credentials
+	var creds domain.Credentials
 	if err := c.BindJSON(&creds); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
 			"error": err.Error(),
 		}).Error("Invalid request")
@@ -71,9 +71,9 @@ func EditCreds(c *gin.Context) {
 		return
 	}
 
-	savedCreds, err := s3.GetCreds(email, creds.Key)
+	savedCreds, err := storage.GetCreds(email, creds.Key)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
 			"error": err.Error(),
 		}).Error("Failed to retrieve credentials")
@@ -89,9 +89,9 @@ func EditCreds(c *gin.Context) {
 			}
 		}
 
-		encryptedValue, err := utils.Encrypt(value, secret)
+		encryptedValue, err := pkg.Encrypt(value, secret)
 		if err != nil {
-			utils.Log.WithFields(logrus.Fields{
+			pkg.Log.WithFields(logrus.Fields{
 				"event": "editCreds",
 				"error": err.Error(),
 			}).Error("Encryption failed")
@@ -101,8 +101,8 @@ func EditCreds(c *gin.Context) {
 		creds.Values[key] = encryptedValue
 	}
 
-	if err := s3.UpdateCreds(email, creds); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := storage.UpdateCreds(email, creds); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
 			"error": err.Error(),
 		}).Error("Failed to edit credentials")
@@ -110,7 +110,7 @@ func EditCreds(c *gin.Context) {
 		return
 	}
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "editCreds",
 		"creds": creds,
 	}).Info("Credentials edited successfully")
@@ -123,8 +123,8 @@ func DeleteCreds(c *gin.Context) {
 	email := c.Value("email").(string)
 	key := c.Param("key")
 
-	if err := s3.DeleteCreds(email, key); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := storage.DeleteCreds(email, key); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "deleteCreds",
 			"error": err.Error(),
 		}).Error("Failed to delete credentials")
@@ -132,7 +132,7 @@ func DeleteCreds(c *gin.Context) {
 		return
 	}
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "deleteCreds",
 		"key":   key,
 	}).Info("Credentials deleted successfully")
@@ -146,9 +146,9 @@ func ViewCreds(c *gin.Context) {
 	secret := c.Query("secret")
 	key := c.Param("key")
 
-	creds, err := s3.GetCreds(email, key)
+	creds, err := storage.GetCreds(email, key)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "viewCreds",
 			"key":   key,
 			"error": err.Error(),
@@ -159,9 +159,9 @@ func ViewCreds(c *gin.Context) {
 
 	if secret != "" {
 		for k, encryptedValue := range creds.Values {
-			decryptedValue, err := utils.Decrypt(encryptedValue, secret)
+			decryptedValue, err := pkg.Decrypt(encryptedValue, secret)
 			if err != nil {
-				utils.Log.WithFields(logrus.Fields{
+				pkg.Log.WithFields(logrus.Fields{
 					"event": "viewCreds",
 					"error": err.Error(),
 				}).Error("Decryption failed")
@@ -172,7 +172,7 @@ func ViewCreds(c *gin.Context) {
 		}
 	}
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "viewCreds",
 		"creds": creds,
 	}).Info("Credentials retrieved successfully")
@@ -184,9 +184,9 @@ func ViewCreds(c *gin.Context) {
 func ListCreds(c *gin.Context) {
 
 	email := c.Value("email").(string)
-	creds, err := s3.ListCreds(email)
+	creds, err := storage.ListCreds(email)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "listCreds",
 			"error": err.Error(),
 		}).Error("Failed to list credentials")
@@ -194,7 +194,7 @@ func ListCreds(c *gin.Context) {
 		return
 	}
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "listCreds",
 		"creds": creds,
 	}).Info("Credentials listed successfully")

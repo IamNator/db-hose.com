@@ -6,14 +6,14 @@ import (
 
 	"dbhose/domain"
 	utils "dbhose/pkg"
-	s3 "dbhose/storage"
+	"dbhose/storage"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 )
 
-func (h *Handler) Signup(c *gin.Context) {
+func (h *Server) Signup(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -21,7 +21,7 @@ func (h *Handler) Signup(c *gin.Context) {
 	}
 
 	// Check if user already exists
-	if _, err := s3.GetUser(user.Email); err == nil {
+	if _, err := storage.GetUser(user.Email); err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
 	}
@@ -37,7 +37,7 @@ func (h *Handler) Signup(c *gin.Context) {
 	user.Password = string(hashedPassword)
 
 	// Store user in S3
-	if err := s3.StoreUser(user); err != nil {
+	if err := storage.StoreUser(user); err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"error":  err.Error(),
 			"method": "Signup",
@@ -59,7 +59,7 @@ func (h *Handler) Signup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Signup successful", "data": gin.H{"token": token}})
 }
 
-func (h *Handler) Login(c *gin.Context) {
+func (h *Server) Login(c *gin.Context) {
 	var loginData domain.LoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
 		utils.Log.WithFields(logrus.Fields{
@@ -70,7 +70,7 @@ func (h *Handler) Login(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	user, err := s3.GetUser(loginData.Email)
+	user, err := storage.GetUser(loginData.Email)
 	if err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -99,13 +99,13 @@ func (h *Handler) Login(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"token": token})
 }
 
-func (h *Handler) Logout(c *gin.Context) {
+func (h *Server) Logout(c *gin.Context) {
 	email := c.Value("email").(string)
 	h.SessionMgr.DeleteSession(email)
 	c.JSON(http.StatusOK, gin.H{"message": "Logout successful"})
 }
 
-func (h *Handler) DeleteAccount(c *gin.Context) {
+func (h *Server) DeleteAccount(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -116,7 +116,7 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	storedUser, err := s3.GetUser(user.Email)
+	storedUser, err := storage.GetUser(user.Email)
 	if err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
@@ -133,7 +133,7 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 	}
 
 	// Delete user from S3
-	if err := s3.DeleteUser(user.Email); err != nil {
+	if err := storage.DeleteUser(user.Email); err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to delete user")
@@ -141,7 +141,7 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 		return
 	}
 
-	if err := s3.DeleteAllCreds(user.Email); err != nil {
+	if err := storage.DeleteAllCreds(user.Email); err != nil {
 		utils.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to delete user credentials")
@@ -154,7 +154,7 @@ func (h *Handler) DeleteAccount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Account deleted successfully"})
 }
 
-func (h *Handler) ChangePassword(c *gin.Context) {
+func (h *Server) ChangePassword(c *gin.Context) {
 	var changePasswordData domain.ChangePasswordData
 	if err := c.ShouldBindJSON(&changePasswordData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -162,7 +162,7 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	user, err := s3.GetUser(changePasswordData.Email)
+	user, err := storage.GetUser(changePasswordData.Email)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
 		return
@@ -184,7 +184,7 @@ func (h *Handler) ChangePassword(c *gin.Context) {
 
 	// Update user password in S3
 	user.Password = string(hashedPassword)
-	if err := s3.UpdateUser(user); err != nil {
+	if err := storage.UpdateUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
