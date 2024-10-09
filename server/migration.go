@@ -2,8 +2,7 @@ package server
 
 import (
 	"bytes"
-	utils "dbhose/pkg"
-	"dbhose/storage"
+	"dbhose/pkg"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func Backup(c *gin.Context) {
+func (h *Server) Backup(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	key := c.Param("key")
@@ -22,7 +21,7 @@ func Backup(c *gin.Context) {
 	secret := c.Query("secret")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := storage.GetCreds(email, key)
+	encryptedCreds, err := h.StorageMgr.GetCreds(email, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -34,31 +33,31 @@ func Backup(c *gin.Context) {
 	encryptedPort := encryptedCreds.Values["port"]
 	encryptedDBName := encryptedCreds.Values["dbname"]
 
-	user, err := utils.Decrypt(encryptedUser, secret)
+	user, err := pkg.Decrypt(encryptedUser, secret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	password, err := utils.Decrypt(encryptedPassword, key)
+	password, err := pkg.Decrypt(encryptedPassword, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	host, err := utils.Decrypt(encryptedHost, key)
+	host, err := pkg.Decrypt(encryptedHost, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	port, err := utils.Decrypt(encryptedPort, key)
+	port, err := pkg.Decrypt(encryptedPort, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	dbname, err := utils.Decrypt(encryptedDBName, key)
+	dbname, err := pkg.Decrypt(encryptedDBName, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -79,7 +78,7 @@ func Backup(c *gin.Context) {
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "backup",
 			"error": err.Error(),
 		}).Error("Backup failed")
@@ -107,8 +106,8 @@ func Backup(c *gin.Context) {
 	key = "backups/" + fileName
 	body := bytes.NewReader(buf.Bytes())
 
-	if err := storage.StoreBackup(key, body); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := h.StorageMgr.StoreBackup(key, body); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "backup",
 			"error": err.Error(),
 		}).Error("Failed to upload backup to S3")
@@ -117,9 +116,9 @@ func Backup(c *gin.Context) {
 	}
 
 	// Log the backup
-	storage.LogBackup(duration, user, key)
+	h.StorageMgr.LogBackup(duration, user, key)
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "backup",
 		"file":  key,
 	}).Info("Backup successful")
@@ -127,7 +126,7 @@ func Backup(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Backup completed", "file": key})
 }
 
-func Restore(c *gin.Context) {
+func (h *Server) Restore(c *gin.Context) {
 
 	key := c.Param("key")
 	email := c.Value("email").(string)
@@ -136,7 +135,7 @@ func Restore(c *gin.Context) {
 	fileName := c.Query("file")
 
 	// Fetch and decrypt credentials
-	encryptedCreds, err := storage.GetCreds(email, key)
+	encryptedCreds, err := h.StorageMgr.GetCreds(email, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -148,40 +147,40 @@ func Restore(c *gin.Context) {
 	encryptedPort := encryptedCreds.Values["port"]
 	encryptedDBName := encryptedCreds.Values["dbname"]
 
-	user, err := utils.Decrypt(encryptedUser, secret)
+	user, err := pkg.Decrypt(encryptedUser, secret)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	password, err := utils.Decrypt(encryptedPassword, key)
+	password, err := pkg.Decrypt(encryptedPassword, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	host, err := utils.Decrypt(encryptedHost, key)
+	host, err := pkg.Decrypt(encryptedHost, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	port, err := utils.Decrypt(encryptedPort, key)
+	port, err := pkg.Decrypt(encryptedPort, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	dbname, err := utils.Decrypt(encryptedDBName, key)
+	dbname, err := pkg.Decrypt(encryptedDBName, key)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Download the file from S3
-	result, err := storage.FetchBackup(fileName)
+	result, err := h.StorageMgr.FetchBackup(fileName)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "restore",
 			"error": err.Error(),
 		}).Error("Failed to download backup from S3")
@@ -204,7 +203,7 @@ func Restore(c *gin.Context) {
 
 	// Start the command
 	if err := cmd.Start(); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "restore",
 			"error": err.Error(),
 		}).Error("Restore failed")
@@ -223,7 +222,7 @@ func Restore(c *gin.Context) {
 
 	// Wait for the command to complete
 	if err := cmd.Wait(); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "restore",
 			"error": err.Error(),
 		}).Error("Restore failed")
@@ -234,9 +233,9 @@ func Restore(c *gin.Context) {
 	duration := time.Since(start)
 
 	// Log the restore
-	storage.LogRestore(duration, email, fileName)
+	h.StorageMgr.LogRestore(duration, email, fileName)
 
-	utils.Log.WithFields(logrus.Fields{
+	pkg.Log.WithFields(logrus.Fields{
 		"event": "restore",
 		"file":  fileName,
 	}).Info("Restore successful")
@@ -244,13 +243,13 @@ func Restore(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Restore completed"})
 }
 
-func Logs(c *gin.Context) {
+func (h *Server) Logs(c *gin.Context) {
 	// Logs
 	email := c.Value("email").(string)
 
-	logs, err := storage.FetchLogs(email)
+	logs, err := h.StorageMgr.FetchLogs(email)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"event": "logs",
 			"error": err.Error(),
 		}).Error("Failed to fetch logs")

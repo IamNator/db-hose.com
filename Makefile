@@ -7,7 +7,7 @@ test:
 run:
 	go run main.go 
 
-build-docker: 
+build-docker:
 	docker build -t db-hose .
 
 run-docker:

@@ -6,12 +6,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-func StoreUser(user domain.User) error {
+func (sm *StorageManager) StoreUser(user domain.User) error {
 	user.ID = fmt.Sprintf("%d", time.Now().UnixNano())
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
@@ -21,12 +18,12 @@ func StoreUser(user domain.User) error {
 	if err != nil {
 		return err
 	}
-	return UploadToS3(bucket, key, bytes.NewReader(userBytes))
+	return sm.UploadToS3(key, bytes.NewReader(userBytes))
 }
 
-func GetUser(email string) (domain.User, error) {
+func (sm *StorageManager) GetUser(email string) (domain.User, error) {
 	key := fmt.Sprintf("users/%s.json", email)
-	result, err := DownloadFromS3(bucket, key)
+	result, err := sm.DownloadFromS3(key)
 	if err != nil {
 		return domain.User{}, err
 	}
@@ -39,16 +36,12 @@ func GetUser(email string) (domain.User, error) {
 	return user, nil
 }
 
-func DeleteUser(email string) error {
+func (sm *StorageManager) DeleteUser(email string) error {
 	key := fmt.Sprintf("users/%s.json", email)
-	svc := s3.New(sess)
-	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
-		Bucket: aws.String(bucket),
-		Key:    aws.String(key),
-	})
-	return err
+	return sm.DeleteObject(key)
 }
 
-func UpdateUser(user domain.User) error {
-	return StoreUser(user)
+func (sm *StorageManager) UpdateUser(user domain.User) error {
+	user.UpdatedAt = time.Now()
+	return sm.StoreUser(user)
 }

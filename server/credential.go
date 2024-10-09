@@ -3,7 +3,6 @@ package server
 import (
 	"dbhose/domain"
 	"dbhose/pkg"
-	"dbhose/storage"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -11,12 +10,12 @@ import (
 )
 
 // StoreCreds stores encrypted credentials in S3
-func StoreCreds(c *gin.Context) {
+func (h *Server) StoreCreds(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
-	var creds domain.Credentials
+	var creds domain.Credential
 	if err := c.BindJSON(&creds); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "storeCreds",
@@ -40,7 +39,7 @@ func StoreCreds(c *gin.Context) {
 		creds.Values[key] = encryptedValue
 	}
 
-	if err := storage.StoreCreds(email, creds); err != nil {
+	if err := h.StorageMgr.StoreCreds(email, creds); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "storeCreds",
 			"error": err.Error(),
@@ -57,11 +56,11 @@ func StoreCreds(c *gin.Context) {
 }
 
 // EditCreds edits stored credentials in S3
-func EditCreds(c *gin.Context) {
+func (h *Server) EditCreds(c *gin.Context) {
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 
-	var creds domain.Credentials
+	var creds domain.Credential
 	if err := c.BindJSON(&creds); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
@@ -71,7 +70,7 @@ func EditCreds(c *gin.Context) {
 		return
 	}
 
-	savedCreds, err := storage.GetCreds(email, creds.Key)
+	savedCreds, err := h.StorageMgr.GetCreds(email, creds.Key)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
@@ -101,7 +100,7 @@ func EditCreds(c *gin.Context) {
 		creds.Values[key] = encryptedValue
 	}
 
-	if err := storage.UpdateCreds(email, creds); err != nil {
+	if err := h.StorageMgr.UpdateCreds(email, creds); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "editCreds",
 			"error": err.Error(),
@@ -118,12 +117,12 @@ func EditCreds(c *gin.Context) {
 }
 
 // DeleteCreds deletes stored credentials from S3
-func DeleteCreds(c *gin.Context) {
+func (h *Server) DeleteCreds(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	key := c.Param("key")
 
-	if err := storage.DeleteCreds(email, key); err != nil {
+	if err := h.StorageMgr.DeleteCreds(email, key); err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "deleteCreds",
 			"error": err.Error(),
@@ -140,13 +139,13 @@ func DeleteCreds(c *gin.Context) {
 }
 
 // ViewCreds views stored credentials from S3
-func ViewCreds(c *gin.Context) {
+func (h *Server) ViewCreds(c *gin.Context) {
 
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 	key := c.Param("key")
 
-	creds, err := storage.GetCreds(email, key)
+	creds, err := h.StorageMgr.GetCreds(email, key)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "viewCreds",
@@ -181,10 +180,10 @@ func ViewCreds(c *gin.Context) {
 }
 
 // ListCreds lists stored credentials from S3
-func ListCreds(c *gin.Context) {
+func (h *Server) ListCreds(c *gin.Context) {
 
 	email := c.Value("email").(string)
-	creds, err := storage.ListCreds(email)
+	creds, err := h.StorageMgr.ListCreds(email)
 	if err != nil {
 		pkg.Log.WithFields(logrus.Fields{
 			"event": "listCreds",

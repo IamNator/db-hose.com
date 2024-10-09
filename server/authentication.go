@@ -5,8 +5,7 @@ import (
 	"time"
 
 	"dbhose/domain"
-	utils "dbhose/pkg"
-	"dbhose/storage"
+	"dbhose/pkg"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -21,7 +20,7 @@ func (h *Server) Signup(c *gin.Context) {
 	}
 
 	// Check if user already exists
-	if _, err := storage.GetUser(user.Email); err == nil {
+	if _, err := h.StorageMgr.GetUser(user.Email); err == nil {
 		c.JSON(http.StatusConflict, gin.H{"error": "User already exists"})
 		return
 	}
@@ -37,8 +36,8 @@ func (h *Server) Signup(c *gin.Context) {
 	user.Password = string(hashedPassword)
 
 	// Store user in S3
-	if err := storage.StoreUser(user); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := h.StorageMgr.StoreUser(user); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"error":  err.Error(),
 			"method": "Signup",
 		}).Error("Failed to store user")
@@ -48,7 +47,7 @@ func (h *Server) Signup(c *gin.Context) {
 
 	token, err := h.SessionMgr.CreateSession(user.Email)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"error":  err.Error(),
 			"method": "Signup",
 		}).Error("Failed to create session")
@@ -62,7 +61,7 @@ func (h *Server) Signup(c *gin.Context) {
 func (h *Server) Login(c *gin.Context) {
 	var loginData domain.LoginData
 	if err := c.ShouldBindJSON(&loginData); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to bind JSON")
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -70,9 +69,9 @@ func (h *Server) Login(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	user, err := storage.GetUser(loginData.Email)
+	user, err := h.StorageMgr.GetUser(loginData.Email)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to fetch user")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
@@ -89,7 +88,7 @@ func (h *Server) Login(c *gin.Context) {
 	// Generate JWT token
 	token, err := h.SessionMgr.CreateSession(loginData.Email)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to create session")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -109,16 +108,16 @@ func (h *Server) DeleteAccount(c *gin.Context) {
 	var user domain.User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to bind JSON")
 		return
 	}
 
 	// Fetch user from S3
-	storedUser, err := storage.GetUser(user.Email)
+	storedUser, err := h.StorageMgr.GetUser(user.Email)
 	if err != nil {
-		utils.Log.WithFields(logrus.Fields{
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to fetch user")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
@@ -133,16 +132,16 @@ func (h *Server) DeleteAccount(c *gin.Context) {
 	}
 
 	// Delete user from S3
-	if err := storage.DeleteUser(user.Email); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := h.StorageMgr.DeleteUser(user.Email); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to delete user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := storage.DeleteAllCreds(user.Email); err != nil {
-		utils.Log.WithFields(logrus.Fields{
+	if err := h.StorageMgr.DeleteAllCreds(user.Email); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
 			"error": err.Error(),
 		}).Error("Failed to delete user credentials")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -162,7 +161,7 @@ func (h *Server) ChangePassword(c *gin.Context) {
 	}
 
 	// Fetch user from S3
-	user, err := storage.GetUser(changePasswordData.Email)
+	user, err := h.StorageMgr.GetUser(changePasswordData.Email)
 	if err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid Email or password"})
 		return
@@ -184,7 +183,7 @@ func (h *Server) ChangePassword(c *gin.Context) {
 
 	// Update user password in S3
 	user.Password = string(hashedPassword)
-	if err := storage.UpdateUser(user); err != nil {
+	if err := h.StorageMgr.UpdateUser(user); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

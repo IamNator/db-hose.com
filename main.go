@@ -16,26 +16,32 @@ func init() {
 	godotenv.Load()
 	config.CheckEnvVars()
 	config.CheckPrograms()
-	storage.Init()
 }
 
 func main() {
+
+	storageMgr, err := storage.NewStorageManager()
+	if err != nil {
+		log.Fatalf("failed to create storage manager: %v", err)
+	}
+
+	sessionManager := pkg.NewSessionManager()
+	sessionManager.InitializeSessionCleaner()
+
+	srv := server.Server{
+		SessionMgr: sessionManager,
+		StorageMgr: storageMgr,
+	}
+
 	r := gin.Default()
-	SetupRoutes(r)
+	SetupRoutes(srv, r)
 
 	if err := r.Run(":8080"); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
 }
 
-func SetupRoutes(r *gin.Engine) {
-
-	sessionManager := pkg.NewSessionManager()
-	sessionManager.InitializeSessionCleaner()
-
-	handler := server.Server{
-		SessionMgr: sessionManager,
-	}
+func SetupRoutes(srv server.Server, r *gin.Engine) {
 
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
@@ -44,19 +50,19 @@ func SetupRoutes(r *gin.Engine) {
 		c.JSON(200, gin.H{"message": "OK"})
 	})
 
-	r.POST("/signup", handler.Signup)
-	r.POST("/login", handler.Login)
-	r.POST("/logout", sessionManager.Middleware, handler.Logout)
-	r.POST("/delete", sessionManager.Middleware, handler.DeleteAccount)
-	r.POST("/change-password", sessionManager.Middleware, handler.ChangePassword)
+	r.POST("/signup", srv.Signup)
+	r.POST("/login", srv.Login)
+	r.POST("/logout", srv.SessionMgr.Middleware, srv.Logout)
+	r.POST("/delete", srv.SessionMgr.Middleware, srv.DeleteAccount)
+	r.POST("/change-password", srv.SessionMgr.Middleware, srv.ChangePassword)
 
-	r.POST("/credentials/store", sessionManager.Middleware, server.StoreCreds)
-	r.PUT("/credentials/edit", sessionManager.Middleware, server.EditCreds)
-	r.DELETE("/credentials/delete/:key", sessionManager.Middleware, server.DeleteCreds)
-	r.GET("/credentials/view/:key", sessionManager.Middleware, server.ViewCreds)
-	r.GET("/credentials/list", sessionManager.Middleware, server.ListCreds)
+	r.POST("/credentials/store", srv.SessionMgr.Middleware, srv.StoreCreds)
+	r.PUT("/credentials/edit", srv.SessionMgr.Middleware, srv.EditCreds)
+	r.DELETE("/credentials/delete/:key", srv.SessionMgr.Middleware, srv.DeleteCreds)
+	r.GET("/credentials/view/:key", srv.SessionMgr.Middleware, srv.ViewCreds)
+	r.GET("/credentials/list", srv.SessionMgr.Middleware, srv.ListCreds)
 
-	r.POST("/backup/:key", sessionManager.Middleware, server.Backup)
-	r.POST("/restore/:key", sessionManager.Middleware, server.Restore)
-	r.GET("/logs", sessionManager.Middleware, server.Logs)
+	r.POST("/backup/:key", srv.SessionMgr.Middleware, srv.Backup)
+	r.POST("/restore/:key", srv.SessionMgr.Middleware, srv.Restore)
+	r.GET("/logs", srv.SessionMgr.Middleware, srv.Logs)
 }

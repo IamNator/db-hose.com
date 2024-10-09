@@ -1,6 +1,6 @@
 package domain
 
-type Credentials struct {
+type Credential struct {
 	Key    string            `json:"key"`
 	Values map[string]string `json:"values"`
 }

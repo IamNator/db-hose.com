@@ -2,7 +2,6 @@ package storage
 
 import (
 	"io"
-	"log"
 	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,48 +9,45 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-var (
-	bucket = os.Getenv("S3_BUCKET_NAME")
+type StorageManager struct {
+	bucket string
 	sess   *session.Session
-)
+}
 
-func Init() {
-
-	bucket = os.Getenv("S3_BUCKET_NAME")
-
-	var err error
-	sess, err = session.NewSession(&aws.Config{
+func NewStorageManager() (*StorageManager, error) {
+	bucket := os.Getenv("S3_BUCKET_NAME")
+	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("AWS_REGION")),
 	})
 	if err != nil {
-		log.Fatalf("failed to create session, %v", err)
+		return nil, err
 	}
+	return &StorageManager{bucket: bucket, sess: sess}, nil
 }
 
-func UploadToS3(bucket, key string, body io.ReadSeeker) error {
-	svc := s3.New(sess)
+func (sm *StorageManager) UploadToS3(key string, body io.ReadSeeker) error {
+	svc := s3.New(sm.sess)
 	_, err := svc.PutObject(&s3.PutObjectInput{
-		Bucket: aws.String(bucket),
+		Bucket: aws.String(sm.bucket),
 		Key:    aws.String(key),
 		Body:   body,
 	})
 	return err
 }
 
-func DownloadFromS3(bucket, key string) (*s3.GetObjectOutput, error) {
-	svc := s3.New(sess)
-	result, err := svc.GetObject(&s3.GetObjectInput{
-		Bucket: aws.String(bucket),
+func (sm *StorageManager) DownloadFromS3(key string) (*s3.GetObjectOutput, error) {
+	svc := s3.New(sm.sess)
+	return svc.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(sm.bucket),
 		Key:    aws.String(key),
 	})
-	return result, err
 }
 
-func ListFiles(bucket, key string) ([]string, error) {
-	svc := s3.New(sess)
+func (sm *StorageManager) ListFiles(prefix string) ([]string, error) {
+	svc := s3.New(sm.sess)
 	result, err := svc.ListObjectsV2(&s3.ListObjectsV2Input{
-		Bucket: aws.String(bucket),
-		Prefix: aws.String(key),
+		Bucket: aws.String(sm.bucket),
+		Prefix: aws.String(prefix),
 	})
 	if err != nil {
 		return nil, err
@@ -61,6 +57,14 @@ func ListFiles(bucket, key string) ([]string, error) {
 	for _, item := range result.Contents {
 		files = append(files, *item.Key)
 	}
-
 	return files, nil
+}
+
+func (sm *StorageManager) DeleteObject(key string) error {
+	svc := s3.New(sm.sess)
+	_, err := svc.DeleteObject(&s3.DeleteObjectInput{
+		Bucket: aws.String(sm.bucket),
+		Key:    aws.String(key),
+	})
+	return err
 }
