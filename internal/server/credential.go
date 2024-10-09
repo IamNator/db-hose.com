@@ -34,18 +34,14 @@ func (h *Server) storeCredential(c *gin.Context) {
 		return
 	}
 
-	for key, value := range creds.Secret {
-
-		encryptedValue, err := pkg.Encrypt(value, secret)
-		if err != nil {
-			pkg.Log.WithFields(logrus.Fields{
-				"event": "storeCreds",
-				"error": err.Error(),
-			}).Error("Encryption failed")
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Encryption failed"})
-			return
-		}
-		creds.Secret[key] = encryptedValue
+	err := creds.Encrypt(secret)
+	if err != nil {
+		pkg.Log.WithFields(logrus.Fields{
+			"event": "storeCreds",
+			"error": err.Error(),
+		}).Error("Encryption failed")
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Encryption failed"})
+		return
 	}
 
 	if err := h.storageMgr.StoreCreds(email, creds); err != nil {
@@ -98,24 +94,13 @@ func (h *Server) editCredential(c *gin.Context) {
 		return
 	}
 
-	for key, value := range creds.Secret {
-
-		if savedValue, ok := savedCreds.Secret[key]; ok {
-			if savedValue == value {
-				continue
-			}
-		}
-
-		encryptedValue, err := pkg.Encrypt(value, secret)
-		if err != nil {
-			pkg.Log.WithFields(logrus.Fields{
-				"event": "editCreds",
-				"error": err.Error(),
-			}).Error("Encryption failed")
-			c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Encryption failed"})
-			return
-		}
-		creds.Secret[key] = encryptedValue
+	if err = savedCreds.Encrypt(secret); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
+			"event": "editCreds",
+			"error": err.Error(),
+		}).Error("Encryption failed")
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Encryption failed"})
+		return
 	}
 
 	if err := h.storageMgr.UpdateCreds(email, creds); err != nil {
@@ -178,7 +163,6 @@ func (h *Server) deleteCredential(c *gin.Context) {
 // @Failure 422 {object} schema.ErrorResponse
 // @Router /credential/{id} [get]
 func (h *Server) viewCredential(c *gin.Context) {
-
 	email := c.Value("email").(string)
 	secret := c.Query("secret")
 	id := c.Param("id")
@@ -194,19 +178,13 @@ func (h *Server) viewCredential(c *gin.Context) {
 		return
 	}
 
-	if secret != "" {
-		for k, encryptedValue := range creds.Secret {
-			decryptedValue, err := pkg.Decrypt(encryptedValue, secret)
-			if err != nil {
-				pkg.Log.WithFields(logrus.Fields{
-					"event": "viewCreds",
-					"error": err.Error(),
-				}).Error("Decryption failed")
-				c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Decryption failed"})
-				return
-			}
-			creds.Secret[k] = decryptedValue
-		}
+	if err := creds.Decrypt(secret); err != nil {
+		pkg.Log.WithFields(logrus.Fields{
+			"event": "viewCreds",
+			"error": err.Error(),
+		}).Error("Decryption failed")
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Decryption failed"})
+		return
 	}
 
 	pkg.Log.WithFields(logrus.Fields{

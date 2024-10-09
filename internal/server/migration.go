@@ -38,44 +38,14 @@ func (h *Server) backup(c *gin.Context) {
 		return
 	}
 
-	encryptedUser := encryptedCreds.Secret["user"]
-	encryptedPassword := encryptedCreds.Secret["password"]
-	encryptedHost := encryptedCreds.Secret["host"]
-	encryptedPort := encryptedCreds.Secret["port"]
-	encryptedDBName := encryptedCreds.Secret["dbname"]
-
-	user, err := pkg.Decrypt(encryptedUser, secret)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	password, err := pkg.Decrypt(encryptedPassword, key)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	host, err := pkg.Decrypt(encryptedHost, key)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	port, err := pkg.Decrypt(encryptedPort, key)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	dbname, err := pkg.Decrypt(encryptedDBName, key)
-	if err != nil {
+	if err := encryptedCreds.Decrypt(secret); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Create the command
-	cmdStr := fmt.Sprintf(`pg_dump --column-inserts --no-owner "host=%s port=%s user=%s dbname=%s password=%s sslmode=require"`, host, port, user, dbname, password)
+	cmdStr := fmt.Sprintf(`pg_dump --column-inserts --no-owner "host=%s port=%s user=%s dbname=%s password=%s sslmode=require"`,
+		encryptedCreds.Secret.Host, encryptedCreds.Secret.Port, encryptedCreds.Secret.User, encryptedCreds.Secret.DBName, encryptedCreds.Secret.Password)
 	cmd := exec.Command("sh", "-c", cmdStr)
 
 	// Create a pipe for the output
@@ -127,7 +97,7 @@ func (h *Server) backup(c *gin.Context) {
 	}
 
 	// Log the backup
-	h.storageMgr.LogBackup(duration, user, key)
+	h.storageMgr.LogBackup(duration, encryptedCreds.Secret.User, key)
 
 	pkg.Log.WithFields(logrus.Fields{
 		"event": "backup",
@@ -165,38 +135,7 @@ func (h *Server) restore(c *gin.Context) {
 		return
 	}
 
-	encryptedUser := encryptedCreds.Secret["user"]
-	encryptedPassword := encryptedCreds.Secret["password"]
-	encryptedHost := encryptedCreds.Secret["host"]
-	encryptedPort := encryptedCreds.Secret["port"]
-	encryptedDBName := encryptedCreds.Secret["dbname"]
-
-	user, err := pkg.Decrypt(encryptedUser, secret)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	password, err := pkg.Decrypt(encryptedPassword, key)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	host, err := pkg.Decrypt(encryptedHost, key)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	port, err := pkg.Decrypt(encryptedPort, key)
-	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
-		return
-	}
-
-	dbname, err := pkg.Decrypt(encryptedDBName, key)
-	if err != nil {
+	if err := encryptedCreds.Decrypt(secret); err != nil {
 		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": err.Error()})
 		return
 	}
@@ -213,7 +152,8 @@ func (h *Server) restore(c *gin.Context) {
 	}
 
 	// Create the command
-	cmdStr := fmt.Sprintf(`psql "host=%s port=%s user=%s dbname=%s password=%s sslmode=require"`, host, port, user, dbname, password)
+	cmdStr := fmt.Sprintf(`psql "host=%s port=%s user=%s dbname=%s password=%s sslmode=require"`,
+		encryptedCreds.Secret.Host, encryptedCreds.Secret.Port, encryptedCreds.Secret.User, encryptedCreds.Secret.DBName, encryptedCreds.Secret.Password)
 	cmd := exec.Command("sh", "-c", cmdStr)
 
 	// Create a pipe for the input
@@ -277,7 +217,6 @@ func (h *Server) restore(c *gin.Context) {
 // @Failure 400 {object} schema.ErrorResponse
 // @Router /logs [get]
 func (h *Server) logs(c *gin.Context) {
-	// Logs
 	email := c.Value("email").(string)
 
 	logs, err := h.storageMgr.FetchLogs(email)
