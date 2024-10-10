@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 100">
+  <!-- Left Database (Source) -->
+  <ellipse cx="40" cy="20" rx="25" ry="8" fill="#4a90e2" />
+  <rect x="15" y="20" width="50" height="30" fill="#4a90e2" />
+  <ellipse cx="40" cy="50" rx="25" ry="8" fill="#4a90e2" />
+  
+  <!-- Right Database (Backup) -->
+  <ellipse cx="160" cy="20" rx="25" ry="8" fill="#2ecc71" />
+  <rect x="135" y="20" width="50" height="30" fill="#2ecc71" />
+  <ellipse cx="160" cy="50" rx="25" ry="8" fill="#2ecc71" />
+  
+  <!-- Backup Arrow -->
+  <path d="M70 30 Q 100 10, 130 30" stroke="#3498db" stroke-width="4" fill="none" />
+  <polygon points="126,26 134,30 126,34" fill="#3498db" />
+  
+  <!-- Restore Arrow -->
+  <path d="M130 40 Q 100 60, 70 40" stroke="#e74c3c" stroke-width="4" fill="none" />
+  <polygon points="74,44 66,40 74,36" fill="#e74c3c" />
+  
+  <!-- Text -->
+  <text x="100" y="85" font-family="Arial, sans-serif" font-size="18" font-weight="bold" fill="#333" text-anchor="middle">DB-Hose</text>
+  <text x="100" y="98" font-family="Arial, sans-serif" font-size="12" fill="#666" text-anchor="middle">Backup &amp; Restore</text>
+</svg>
