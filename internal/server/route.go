@@ -2,9 +2,9 @@ package server
 
 import (
 	"dbhose/pkg"
+	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	_ "dbhose/docs"
 
@@ -31,15 +31,14 @@ func (srv Server) initRoutes(engine *gin.Engine) {
 	engine.NoRoute(func(c *gin.Context) {
 		path := filepath.Join("public", c.Request.URL.Path)
 
-		if !strings.Contains(path, ".html") {
+		if info, err := os.Stat(path); err == nil && info.IsDir() {
 			path = filepath.Join(path, "index.html")
 		}
 
 		if _, err := os.ReadFile(path); err == nil {
 			c.File(path)
 		} else {
-			// If the file doesn't exist, serve the index.html file
-			c.File("./public/index.html")
+			c.String(http.StatusNotFound, "404 page not found")
 		}
 	})
 
