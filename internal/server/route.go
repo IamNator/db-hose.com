@@ -2,6 +2,9 @@ package server
 
 import (
 	"dbhose/pkg"
+	"os"
+	"path/filepath"
+	"strings"
 
 	_ "dbhose/docs"
 
@@ -17,6 +20,28 @@ func (srv Server) initRoutes(engine *gin.Engine) {
 	engine.Use(pkg.CORSMiddleware())
 
 	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	engine.Static("/public", "./public")
+
+	engine.GET("/", func(c *gin.Context) {
+		c.File("./public/index.html")
+	})
+
+	// Handle 404 errors
+	engine.NoRoute(func(c *gin.Context) {
+		path := filepath.Join("public", c.Request.URL.Path)
+
+		if !strings.Contains(path, ".html") {
+			path = filepath.Join(path, "index.html")
+		}
+
+		if _, err := os.ReadFile(path); err == nil {
+			c.File(path)
+		} else {
+			// If the file doesn't exist, serve the index.html file
+			c.File("./public/index.html")
+		}
+	})
 
 	eng := engine.Group("/api/v1")
 
