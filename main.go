@@ -3,7 +3,6 @@ package main
 import (
 	"log"
 
-	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 
 	"dbhose/config"
@@ -22,7 +21,7 @@ func init() {
 // @version 1.0
 // @description This is the API for DBHose
 // @host localhost:8080
-// @BasePath /
+// @BasePath /api/v1
 func main() {
 	storageMgr, err := storage.New()
 	if err != nil {
@@ -34,8 +33,9 @@ func main() {
 
 	srv := server.New(sessionManager, storageMgr)
 
-	r := gin.Default()
-	if err := srv.Run(r); err != nil {
+	port := config.DefaultEnvVar("PORT", ":8080")
+
+	if err := srv.Run(port); err != nil {
 		log.Fatalf("failed to run server: %v", err)
 	}
 }

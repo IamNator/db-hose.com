@@ -1,7 +1,6 @@
 package server
 
 import (
-	"dbhose/config"
 	"dbhose/internal/storage"
 	utils "dbhose/pkg"
 
@@ -22,8 +21,8 @@ func New(sessionMgr *utils.SessionManager, storageMgr *storage.StorageManager) *
 }
 
 // Run starts the server
-func (h *Server) Run(r *gin.Engine) error {
+func (h *Server) Run(port string) error {
+	r := gin.Default()
 	h.initRoutes(r)
-	port := config.DefaultEnvVar("PORT", ":8080")
 	return r.Run(port)
 }

@@ -514,6 +514,40 @@ const docTemplate = `{
                 }
             }
         },
+        "/migration": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Fetch Migration History",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Migration"
+                ],
+                "summary": "Fetch Migration History",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/server.migrationHistoryResponse"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/schema.ErrorResponse"
+                        }
+                    }
+                }
+            }
+        },
         "/restore/{key}": {
             "post": {
                 "security": [
@@ -644,12 +678,29 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "secret": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": "string"
-                    }
+                    "$ref": "#/definitions/domain.CredentialSecret"
                 },
                 "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.CredentialSecret": {
+            "type": "object",
+            "properties": {
+                "dbname": {
+                    "type": "string"
+                },
+                "host": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "port": {
+                    "type": "string"
+                },
+                "user": {
                     "type": "string"
                 }
             }
@@ -675,6 +726,26 @@ const docTemplate = `{
                 },
                 "timestamp": {
                     "description": "2006-01-02 15:04:05",
+                    "type": "string"
+                }
+            }
+        },
+        "domain.Migration": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "meta": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "string"
+                    }
+                },
+                "size": {
+                    "type": "integer"
+                },
+                "timestamp": {
                     "type": "string"
                 }
             }
@@ -803,6 +874,20 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "server.migrationHistoryResponse": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.Migration"
+                    }
+                },
+                "message": {
+                    "type": "string"
+                }
+            }
         }
     }
 }`
@@ -811,7 +896,7 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "DBHose API",
 	Description:      "This is the API for DBHose",

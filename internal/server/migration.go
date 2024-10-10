@@ -2,6 +2,8 @@ package server
 
 import (
 	"bytes"
+	"dbhose/internal/domain"
+	"dbhose/internal/schema"
 	"dbhose/pkg"
 	"fmt"
 	"io"
@@ -230,4 +232,31 @@ func (h *Server) logs(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Logs fetched successfully", "data": logs})
+}
+
+type migrationHistoryResponse schema.Response[[]domain.Migration]
+
+// @Summary Fetch Migration History
+// @Description Fetch Migration History
+// @Tags Migration
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Success 200 {object} migrationHistoryResponse
+// @Failure 400 {object} schema.ErrorResponse
+// @Router /migration [get]
+func (h *Server) migrationHistory(c *gin.Context) {
+	email := c.Value("email").(string)
+
+	migrationHistory, err := h.storageMgr.ListBackups(email)
+	if err != nil {
+		pkg.Log.WithFields(logrus.Fields{
+			"event": "migration-history",
+			"error": err.Error(),
+		}).Error("Failed to fetch migration history")
+		c.JSON(http.StatusUnprocessableEntity, gin.H{"error": "Failed to fetch migration history", "details": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, migrationHistoryResponse{Message: "Migration history fetched successfully", Data: migrationHistory})
 }

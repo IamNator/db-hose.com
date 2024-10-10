@@ -1,4 +1,4 @@
-basePath: /
+basePath: /api/v1
 definitions:
   domain.Credential:
     properties:
@@ -9,10 +9,21 @@ definitions:
       id:
         type: string
       secret:
-        additionalProperties:
-          type: string
-        type: object
+        $ref: '#/definitions/domain.CredentialSecret'
       updated_at:
+        type: string
+    type: object
+  domain.CredentialSecret:
+    properties:
+      dbname:
+        type: string
+      host:
+        type: string
+      password:
+        type: string
+      port:
+        type: string
+      user:
         type: string
     type: object
   domain.Log:
@@ -30,6 +41,19 @@ definitions:
         type: string
       timestamp:
         description: "2006-01-02 15:04:05"
+        type: string
+    type: object
+  domain.Migration:
+    properties:
+      email:
+        type: string
+      meta:
+        additionalProperties:
+          type: string
+        type: object
+      size:
+        type: integer
+      timestamp:
         type: string
     type: object
   schema.ChangePasswordRequest:
@@ -110,6 +134,15 @@ definitions:
           token:
             type: string
         type: object
+      message:
+        type: string
+    type: object
+  server.migrationHistoryResponse:
+    properties:
+      data:
+        items:
+          $ref: '#/definitions/domain.Migration'
+        type: array
       message:
         type: string
     type: object
@@ -434,6 +467,27 @@ paths:
       security:
       - Bearer: []
       summary: Fetch logs
+      tags:
+      - Migration
+  /migration:
+    get:
+      consumes:
+      - application/json
+      description: Fetch Migration History
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.migrationHistoryResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/schema.ErrorResponse'
+      security:
+      - Bearer: []
+      summary: Fetch Migration History
       tags:
       - Migration
   /restore/{key}:

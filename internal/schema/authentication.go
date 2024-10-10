@@ -50,3 +50,8 @@ type LogResponse struct {
 	Message string `json:"message"`
 	Data    map[string][]domain.Log
 }
+
+type Response[T any] struct {
+	Message string `json:"message"`
+	Data    T      `json:"data"`
+}

@@ -10,29 +10,34 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func (srv Server) initRoutes(r *gin.Engine) {
-	r.Use(gin.Recovery())
-	r.Use(gin.Logger())
-	r.Use(pkg.CORSMiddleware())
-	r.GET("/health", func(c *gin.Context) {
+func (srv Server) initRoutes(engine *gin.Engine) {
+
+	engine.Use(gin.Recovery())
+	engine.Use(gin.Logger())
+	engine.Use(pkg.CORSMiddleware())
+
+	engine.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
+	eng := engine.Group("/api/v1")
+
+	eng.GET("/health", func(c *gin.Context) {
 		c.JSON(200, gin.H{"message": "OK"})
 	})
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	eng.POST("/signup", srv.signup)
+	eng.POST("/login", srv.login)
+	eng.POST("/logout", srv.sessionMgr.Middleware, srv.logout)
+	eng.POST("/delete", srv.sessionMgr.Middleware, srv.deleteAccount)
+	eng.POST("/change-password", srv.sessionMgr.Middleware, srv.changePassword)
 
-	r.POST("/signup", srv.signup)
-	r.POST("/login", srv.login)
-	r.POST("/logout", srv.sessionMgr.Middleware, srv.logout)
-	r.POST("/delete", srv.sessionMgr.Middleware, srv.deleteAccount)
-	r.POST("/change-password", srv.sessionMgr.Middleware, srv.changePassword)
+	eng.POST("/credentials/store", srv.sessionMgr.Middleware, srv.storeCredential)
+	eng.PUT("/credentials/edit", srv.sessionMgr.Middleware, srv.editCredential)
+	eng.DELETE("/credentials/delete/:key", srv.sessionMgr.Middleware, srv.deleteCredential)
+	eng.GET("/credentials/view/:key", srv.sessionMgr.Middleware, srv.viewCredential)
+	eng.GET("/credentials/list", srv.sessionMgr.Middleware, srv.listCredential)
 
-	r.POST("/credentials/store", srv.sessionMgr.Middleware, srv.storeCredential)
-	r.PUT("/credentials/edit", srv.sessionMgr.Middleware, srv.editCredential)
-	r.DELETE("/credentials/delete/:key", srv.sessionMgr.Middleware, srv.deleteCredential)
-	r.GET("/credentials/view/:key", srv.sessionMgr.Middleware, srv.viewCredential)
-	r.GET("/credentials/list", srv.sessionMgr.Middleware, srv.listCredential)
-
-	r.POST("/backup/:key", srv.sessionMgr.Middleware, srv.backup)
-	r.POST("/restore/:key", srv.sessionMgr.Middleware, srv.restore)
-	r.GET("/logs", srv.sessionMgr.Middleware, srv.logs)
+	eng.POST("/backup/:key", srv.sessionMgr.Middleware, srv.backup)
+	eng.POST("/restore/:key", srv.sessionMgr.Middleware, srv.restore)
+	eng.GET("/logs", srv.sessionMgr.Middleware, srv.logs)
+	eng.GET("/migration", srv.sessionMgr.Middleware, srv.migrationHistory)
 }
