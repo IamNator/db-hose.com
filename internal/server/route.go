@@ -27,6 +27,10 @@ func (srv Server) initRoutes(engine *gin.Engine) {
 		c.File("./public/index.html")
 	})
 
+	engine.GET("/favicon.ico", func(c *gin.Context) {
+		c.File("./public/favicon.ico")
+	})
+
 	// Handle 404 errors
 	engine.NoRoute(func(c *gin.Context) {
 		path := filepath.Join("public", c.Request.URL.Path)
